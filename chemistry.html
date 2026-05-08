@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Quick-Edu | العالم الافتراضي للتعليم</title>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif; background: #05070a; color: #fff; overflow-x: hidden; }
+        #canvas-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        .content { position: relative; z-index: 10; }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 60px;
+            background: rgba(5, 7, 10, 0.75); backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid rgba(79, 156, 255, 0.3);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); transition: all 0.3s ease;
+        }
+        .navbar.scrolled { background: rgba(5, 7, 10, 0.95); border-bottom-color: #4f9cff; box-shadow: 0 5px 35px rgba(79, 156, 255, 0.2); }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 8px 24px; background: linear-gradient(135deg, rgba(79, 156, 255, 0.2), rgba(168, 85, 247, 0.1)); border-radius: 60px; border: 1px solid rgba(79, 156, 255, 0.5); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
+        .logo::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(79,156,255,0.25), transparent); opacity: 0; transition: 0.5s; }
+        .logo:hover::before { opacity: 1; }
+        .logo-icon { font-size: 32px; filter: drop-shadow(0 0 8px #4f9cff); animation: iconPulse 1.5s ease-in-out infinite; }
+        @keyframes iconPulse { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 5px #4f9cff); } 50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #4f9cff); } }
+        .logo-text { font-size: 26px; font-weight: 900; background: linear-gradient(135deg, #ffffff, #4f9cff, #c084fc, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -0.5px; }
+        .logo:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(79, 156, 255, 0.5); border-color: #4f9cff; }
+        .nav-links { display: flex; gap: 35px; align-items: center; }
+        .nav-links a { color: #e2e8f0; text-decoration: none; font-weight: 600; transition: 0.3s; position: relative; font-size: 15px; padding: 8px 0; }
+        .nav-links a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0%; height: 3px; background: linear-gradient(90deg, #4f9cff, #a855f7, #22d3ee); transition: 0.35s ease; border-radius: 3px; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a:hover { color: #4f9cff; transform: translateY(-3px); text-shadow: 0 0 8px rgba(79, 156, 255, 0.5); }
+        .nav-links a::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, rgba(79,156,255,0.15), transparent); opacity: 0; transition: 0.3s; border-radius: 30px; pointer-events: none; }
+        .nav-links a:hover::before { opacity: 1; }
+        .ai-nav-btn { background: linear-gradient(135deg, #4f9cff, #a855f7); border: none; padding: 8px 22px; border-radius: 40px; color: white; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.3s; margin-right: 10px; text-decoration: none; display: inline-block; }
+        .ai-nav-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(79, 156, 255, 0.5); }
+
+        .container { max-width: 1300px; margin: 0 auto; padding: 80px 40px; }
+
+        /* ===== HERO ===== */
+        .hero { text-align: center; margin-bottom: 100px; animation: fadeInUp 0.8s ease; background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(79,156,255,0.12), transparent 70%); padding: 60px 30px; border-radius: 80px; position: relative; }
+        .hero::after { content: ''; position: absolute; bottom: -20px; left: 20%; width: 60%; height: 2px; background: linear-gradient(90deg, transparent, #4f9cff, #a855f7, transparent); }
+        .hero-badge { display: inline-block; background: rgba(79, 156, 255, 0.2); backdrop-filter: blur(10px); padding: 10px 28px; border-radius: 60px; font-size: 14px; color: #4f9cff; margin-bottom: 30px; border: 1px solid rgba(79, 156, 255, 0.4); font-weight: 600; letter-spacing: 1px; }
+        .hero h1 { font-size: 5.5rem; font-weight: 900; background: linear-gradient(135deg, #ffffff, #4f9cff, #a855f7, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 25px; line-height: 1.15; }
+        .hero p { font-size: 1.4rem; color: #94a3b8; max-width: 700px; margin: 0 auto; font-weight: 500; }
+
+        /* ===== ANIMATION SECTION ===== */
+        .ai-animation-section { margin: 60px 0 70px; border-radius: 40px; overflow: hidden; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid rgba(79,156,255,0.3); background: linear-gradient(135deg, #0a0e2a, #0a0a1a); }
+        .animation-container { position: relative; width: 100%; height: 400px; overflow: hidden; }
+        #learningCanvas { width: 100%; height: 100%; display: block; }
+        .animation-overlay { position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; z-index: 10; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+        .news-ticker { display: inline-block; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(12px); padding: 18px 30px; border-radius: 60px; border: 1px solid rgba(79, 156, 255, 0.6); box-shadow: 0 0 25px rgba(79, 156, 255, 0.4); width: 90%; max-width: 900px; overflow: hidden; text-align: center; }
+        .ticker-content { display: inline-block; animation: tickerScroll 18s linear infinite; font-size: 26px; font-weight: 800; color: #ffd966; letter-spacing: 1px; white-space: nowrap; }
+        @keyframes tickerScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .ai-badge-new { position: absolute; top: 20px; right: 20px; background: rgba(79,156,255,0.8); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 40px; font-size: 14px; font-weight: 700; z-index: 10; border: 1px solid rgba(255,255,255,0.3); animation: badgePulse 2s ease-in-out infinite; }
+        @keyframes badgePulse { 0%,100% { box-shadow: 0 0 5px rgba(79,156,255,0.5); } 50% { box-shadow: 0 0 20px rgba(79,156,255,0.8); } }
+
+        /* ===== CARDS ===== */
+        .cards-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 25px; margin: 70px 0; }
+        .card { background: rgba(10, 15, 30, 0.7); backdrop-filter: blur(16px); border-radius: 28px; padding: 35px 20px; text-align: center; cursor: pointer; transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); border: 1px solid rgba(79, 156, 255, 0.2); position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(79, 156, 255, 0.25), transparent); transition: 0.6s; }
+        .card:hover::before { left: 100%; }
+        .card:hover { transform: translateY(-18px) scale(1.03); border-color: #4f9cff; box-shadow: 0 35px 60px rgba(79, 156, 255, 0.35); background: rgba(15, 23, 42, 0.8); }
+        .card-icon { font-size: 70px; margin-bottom: 20px; display: inline-block; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 5px 15px rgba(79,156,255,0.3)); }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .card h2 { font-size: 22px; margin-bottom: 12px; background: linear-gradient(135deg, #fff, #4f9cff); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 800; }
+        .card p { color: #94a3b8; font-size: 12px; line-height: 1.6; margin-bottom: 20px; }
+        .card-btn { background: linear-gradient(90deg, #4f9cff, #3b82f6); border: none; padding: 10px 25px; border-radius: 50px; color: white; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 12px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(79, 156, 255, 0.3); }
+        .card-btn:hover { transform: scale(1.08); box-shadow: 0 8px 25px rgba(79, 156, 255, 0.6); }
+
+        /* ===== STATS ===== */
+        .stats-bar { display: flex; justify-content: center; gap: 70px; flex-wrap: wrap; margin: 80px 0 50px; padding: 40px; background: rgba(5, 7, 10, 0.5); backdrop-filter: blur(20px); border-radius: 80px; border: 1px solid rgba(79, 156, 255, 0.25); }
+        .stat { text-align: center; position: relative; }
+        .stat::after { content: ''; position: absolute; right: -35px; top: 50%; transform: translateY(-50%); width: 2px; height: 40px; background: linear-gradient(180deg, transparent, #4f9cff, #a855f7, transparent); }
+        .stat:last-child::after { display: none; }
+        .stat-number { font-size: 48px; font-weight: 900; background: linear-gradient(135deg, #4f9cff, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .stat-label { color: #64748b; font-size: 15px; margin-top: 8px; font-weight: 600; }
+
+        footer { text-align: center; padding: 45px; border-top: 1px solid rgba(79, 156, 255, 0.15); color: #475569; background: rgba(5, 7, 10, 0.6); backdrop-filter: blur(10px); }
+        .hidden { opacity: 0; transform: translateY(40px); transition: 0.7s; }
+        .show { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+
+        .scroll-top { position: fixed; bottom: 30px; right: 30px; background: linear-gradient(135deg, #4f9cff, #3b82f6); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; opacity: 0; transition: 0.3s; border: none; font-size: 24px; box-shadow: 0 5px 20px rgba(79, 156, 255, 0.4); }
+        .scroll-top.show-btn { opacity: 1; }
+        .scroll-top:hover { transform: scale(1.1); }
+
+        /* ===== ENTRANCE - IMPROVED (NO COUNTDOWN) ===== */
+        .virtual-entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; overflow: hidden; }
+        .entrance-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, #0a0e1a 0%, #03050c 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; z-index: 2; transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .entrance-layer.exit { opacity: 0; transform: scale(1.1); pointer-events: none; }
+        
+        /* FEATURE 1: Animated Portal with color cycling */
+        .portal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; height: 500px; border-radius: 50%; background: radial-gradient(circle, rgba(79,156,255,0.15), transparent 70%); z-index: 3; animation: portalPulse 3s ease-in-out infinite, portalColorShift 4s ease-in-out infinite; }
+        @keyframes portalPulse { 0%,100% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; } 50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.7; } }
+        @keyframes portalColorShift { 0% { background: radial-gradient(circle, rgba(79,156,255,0.15), transparent 70%); } 33% { background: radial-gradient(circle, rgba(168,85,247,0.15), transparent 70%); } 66% { background: radial-gradient(circle, rgba(34,211,238,0.15), transparent 70%); } 100% { background: radial-gradient(circle, rgba(79,156,255,0.15), transparent 70%); } }
+        .portal::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 350px; height: 350px; border-radius: 50%; border: 2px solid rgba(79, 156, 255, 0.4); animation: portalRing 2.5s ease-in-out infinite; }
+        .portal::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; height: 250px; border-radius: 50%; border: 1px solid rgba(168, 85, 247, 0.4); animation: portalRing 2.5s ease-in-out infinite 0.8s; }
+        @keyframes portalRing { 0% { width: 200px; height: 200px; opacity: 0.6; } 100% { width: 550px; height: 550px; opacity: 0; } }
+        
+        /* FEATURE 2: Floating particles around portal */
+        .floating-particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+        .float-particle { position: absolute; width: 4px; height: 4px; background: radial-gradient(circle, #4f9cff, #a855f7); border-radius: 50%; opacity: 0.6; animation: floatParticle 8s ease-in-out infinite; }
+        @keyframes floatParticle { 0%,100% { transform: translateY(0) translateX(0); opacity: 0.3; } 50% { transform: translateY(-30px) translateX(20px); opacity: 0.8; } }
+        
+        /* Names showcase */
+        .names-showcase { position: absolute; top: 30px; left: 0; right: 0; text-align: center; z-index: 30; }
+        .names-label { font-size: 12px; color: rgba(79, 156, 255, 0.5); letter-spacing: 5px; margin-bottom: 12px; font-weight: 400; opacity: 0; animation: fadeInUp 0.6s ease-out 0.3s forwards; }
+        .names-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; align-items: baseline; }
+        .name-card { position: relative; padding: 8px 20px; background: rgba(79, 156, 255, 0.08); border-radius: 60px; border: 1px solid rgba(79, 156, 255, 0.3); backdrop-filter: blur(8px); transition: all 0.3s; }
+        .name-text { font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #ffffff, #4f9cff, #a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: 1px; }
+        .name-separator-glow { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #4f9cff, #a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; animation: separatorPulse 1.5s ease-in-out infinite; }
+        @keyframes separatorPulse { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.15); } }
+        
+        /* Logo animation - appears immediately */
+        .central-content { text-align: center; z-index: 20; position: relative; opacity: 0; }
+        .central-content.animate-logo { animation: logoGlitchDrop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
+        @keyframes logoGlitchDrop {
+            0% { opacity: 0; transform: translateY(-200px) scale(0.5); filter: blur(10px); }
+            30% { opacity: 1; transform: translateY(20px) scale(1.05); text-shadow: -3px 0 #4f9cff, 3px 0 #a855f7; }
+            60% { transform: translateY(-5px) scale(0.98); text-shadow: 2px 0 #22d3ee, -2px 0 #ff0066; }
+            100% { opacity: 1; transform: translateY(0) scale(1); text-shadow: none; }
+        }
+        
+        .main-logo { font-size: 100px; font-weight: 900; background: linear-gradient(135deg, #ffffff, #4f9cff, #a855f7, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -3px; filter: drop-shadow(0 0 20px rgba(79,156,255,0.5)); }
+        
+        /* FEATURE 6: Rotating tagline messages */
+        .tagline { color: #4f9cff; margin-top: 18px; font-size: 14px; letter-spacing: 8px; font-weight: 500; opacity: 0.8; min-height: 40px; }
+        .tagline span { display: inline-block; transition: all 0.5s ease; }
+        
+        /* Button appears quickly */
+        .start-learning-btn { 
+            position: absolute; 
+            bottom: 120px; 
+            left: 50%; 
+            transform: translateX(-50%) scale(0); 
+            background: linear-gradient(135deg, #4f9cff, #a855f7); 
+            border: none; 
+            padding: 16px 48px; 
+            border-radius: 60px; 
+            color: white; 
+            font-weight: 800; 
+            font-size: 20px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            text-decoration: none; 
+            display: inline-block; 
+            box-shadow: 0 0 30px rgba(79, 156, 255, 0.6); 
+            z-index: 30; 
+            font-family: inherit; 
+            letter-spacing: 2px; 
+            border: 1px solid rgba(255,255,255,0.2);
+            opacity: 0;
+        }
+        .start-learning-btn.show-btn {
+            animation: btnZoomIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        @keyframes btnZoomIn {
+            0% { opacity: 0; transform: translateX(-50%) scale(0); filter: blur(5px); }
+            60% { opacity: 1; transform: translateX(-50%) scale(1.1); filter: blur(0); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        }
+        .start-learning-btn:hover { transform: translateX(-50%) scale(1.08); box-shadow: 0 0 65px rgba(79,156,255,1); background: linear-gradient(135deg, #a855f7, #4f9cff); }
+        
+        /* FEATURE 8: Click ripple effect */
+        .click-ripple { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.8), transparent); pointer-events: none; animation: rippleEffect 0.8s ease-out forwards; }
+        @keyframes rippleEffect { 0% { transform: scale(0); opacity: 0.8; } 100% { transform: scale(20); opacity: 0; } }
+        
+        /* Welcome message */
+        .welcome-message { position: absolute; bottom: 200px; left: 0; right: 0; text-align: center; z-index: 25; font-size: 14px; color: rgba(79,156,255,0.7); letter-spacing: 2px; opacity: 0; animation: fadeInUp 0.6s ease-out 0.5s forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Music visualizer */
+        .music-visualizer { position: absolute; bottom: 30px; right: 30px; display: flex; gap: 4px; z-index: 40; opacity: 0.5; }
+        .music-bar { width: 4px; height: 20px; background: linear-gradient(180deg, #4f9cff, #a855f7); border-radius: 2px; animation: musicBarAnim 0.8s ease-in-out infinite alternate; }
+        .music-bar:nth-child(1) { animation-delay: 0s; height: 15px; }
+        .music-bar:nth-child(2) { animation-delay: 0.2s; height: 30px; }
+        .music-bar:nth-child(3) { animation-delay: 0.4s; height: 20px; }
+        .music-bar:nth-child(4) { animation-delay: 0.6s; height: 25px; }
+        .music-bar:nth-child(5) { animation-delay: 0.8s; height: 10px; }
+        @keyframes musicBarAnim { 0% { height: 5px; opacity: 0.3; } 100% { height: 25px; opacity: 1; } }
+        
+        .portal-particles { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 15; pointer-events: none; }
+        .portal-particle { position: absolute; width: 6px; height: 6px; background: radial-gradient(circle, #4f9cff, #a855f7); border-radius: 50%; opacity: 0; animation: portalParticleFly 1s ease-out forwards; }
+        @keyframes portalParticleFly { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--px, 300px), var(--py, -200px)) scale(0); } }
+
+        /* ===== STUDY TIMER STYLES ===== */
+        .timer-fab { position: fixed; bottom: 30px; left: 30px; z-index: 500; }
+        .timer-fab-btn { width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 26px; transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2); position: relative; background: rgba(10, 14, 26, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(79, 156, 255, 0.4); box-shadow: 0 4px 24px rgba(79, 156, 255, 0.25); }
+        .timer-fab-btn::before { content: ''; position: absolute; inset: -2px; border-radius: 50%; background: conic-gradient(from 0deg, #4f9cff, #a855f7, #22d3ee, #4f9cff); z-index: -1; animation: fabSpin 4s linear infinite; opacity: 0.6; }
+        @keyframes fabSpin { to { transform: rotate(360deg); } }
+        .timer-fab-btn:hover { transform: scale(1.12); box-shadow: 0 6px 36px rgba(79, 156, 255, 0.5); }
+        .timer-panel { position: absolute; bottom: 76px; left: 0; width: 320px; background: rgba(8, 12, 24, 0.97); backdrop-filter: blur(28px); border: 1px solid rgba(79, 156, 255, 0.2); border-radius: 28px; overflow: hidden; transform-origin: bottom left; transform: scale(0.85) translateY(16px); opacity: 0; pointer-events: none; transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(79,156,255,0.08); }
+        .timer-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+        .timer-header { padding: 18px 22px 14px; background: linear-gradient(135deg, rgba(79,156,255,0.07), rgba(168,85,247,0.04)); border-bottom: 1px solid rgba(79,156,255,0.1); display: flex; align-items: center; justify-content: space-between; }
+        .timer-title-row { display: flex; align-items: center; gap: 10px; }
+        .timer-icon-wrap { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, rgba(79,156,255,0.2), rgba(168,85,247,0.15)); display: flex; align-items: center; justify-content: center; font-size: 16px; border: 1px solid rgba(79,156,255,0.2); }
+        .timer-title { font-size: 14px; font-weight: 800; color: #e2e8f0; letter-spacing: 0.5px; }
+        .timer-subtitle { font-size: 10px; color: #475569; margin-top: 1px; font-weight: 500; }
+        .timer-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #475569; transition: 0.3s; box-shadow: none; }
+        .timer-status-dot.running { background: #22d3ee; box-shadow: 0 0 10px rgba(34, 211, 238, 0.7); animation: dotPulse 1s ease-in-out infinite; }
+        .timer-status-dot.paused { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); }
+        @keyframes dotPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .timer-setup { padding: 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .setup-label { font-size: 10px; color: #475569; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+        .quick-times { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+        .quick-time-btn { flex: 1; min-width: 52px; padding: 8px 4px; border-radius: 12px; border: 1px solid rgba(79,156,255,0.18); background: rgba(79,156,255,0.05); color: #64748b; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; text-align: center; }
+        .quick-time-btn:hover { background: rgba(79,156,255,0.12); color: #94a3b8; border-color: rgba(79,156,255,0.35); }
+        .quick-time-btn.active { background: linear-gradient(135deg, rgba(79,156,255,0.2), rgba(168,85,247,0.12)); border-color: #4f9cff; color: #4f9cff; box-shadow: 0 0 14px rgba(79,156,255,0.2); }
+        .custom-time-wrap { display: flex; align-items: center; gap: 12px; }
+        .time-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; border-radius: 4px; background: linear-gradient(90deg, #4f9cff var(--pct, 30%), rgba(255,255,255,0.06) var(--pct, 30%)); outline: none; cursor: pointer; }
+        .time-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #4f9cff, #a855f7); cursor: pointer; box-shadow: 0 0 12px rgba(79,156,255,0.6); transition: transform 0.15s; }
+        .time-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .slider-val { font-size: 14px; font-weight: 800; color: #4f9cff; min-width: 46px; text-align: center; background: rgba(79,156,255,0.08); padding: 5px 8px; border-radius: 8px; border: 1px solid rgba(79,156,255,0.2); font-variant-numeric: tabular-nums; }
+        .timer-display-wrap { padding: 22px 22px 18px; text-align: center; position: relative; }
+        .ring-wrap { position: relative; width: 150px; height: 150px; margin: 0 auto 16px; }
+        .ring-svg { transform: rotate(-90deg); width: 150px; height: 150px; }
+        .ring-track { fill: none; stroke: rgba(255,255,255,0.04); stroke-width: 7; }
+        .ring-progress { fill: none; stroke: url(#ringGrad); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 408; stroke-dashoffset: 408; transition: stroke-dashoffset 1s linear; }
+        .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .timer-digits { font-size: 34px; font-weight: 900; color: #e2e8f0; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+        .timer-phase { font-size: 9px; color: #475569; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+        .timer-controls { display: flex; gap: 8px; padding: 0 22px 20px; }
+        .ctrl-btn { flex: 1; padding: 11px; border-radius: 14px; border: 1px solid rgba(79,156,255,0.2); background: rgba(79,156,255,0.05); color: #64748b; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .ctrl-btn:hover { background: rgba(79,156,255,0.1); color: #94a3b8; }
+        .ctrl-btn.start { background: linear-gradient(135deg, #4f9cff, #a855f7); border-color: transparent; color: white; box-shadow: 0 4px 20px rgba(79,156,255,0.35); flex: 2; }
+        .ctrl-btn.start:hover { transform: scale(1.03); box-shadow: 0 6px 28px rgba(79,156,255,0.55); }
+        .ctrl-btn.start:active { transform: scale(0.98); }
+        .sessions-bar { padding: 12px 22px 16px; border-top: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: space-between; }
+        .sessions-label { font-size: 10px; color: #334155; font-weight: 600; letter-spacing: 1px; }
+        .sessions-dots { display: flex; gap: 5px; }
+        .s-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(79,156,255,0.08); border: 1px solid rgba(79,156,255,0.15); transition: all 0.4s; }
+        .s-dot.done { background: linear-gradient(135deg, #4f9cff, #a855f7); border-color: transparent; box-shadow: 0 0 8px rgba(79,156,255,0.5); }
+        .sessions-total { font-size: 11px; color: #334155; font-weight: 700; }
+        .timer-done-toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(40px); background: rgba(8,12,24,0.97); backdrop-filter: blur(20px); border: 1px solid rgba(34,211,238,0.4); border-radius: 20px; padding: 16px 28px; text-align: center; z-index: 9999; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1); min-width: 260px; }
+        .timer-done-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast-emoji { font-size: 28px; margin-bottom: 6px; }
+        .toast-msg { font-size: 15px; font-weight: 700; color: #e2e8f0; margin-bottom: 2px; }
+        .toast-sub { font-size: 12px; color: #64748b; }
+
+        /* ===== FLASHCARDS STYLES ===== */
+        .flashcards-sidebar { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); z-index: 600; cursor: pointer; }
+        .flashcard-toggle { width: 55px; height: 55px; background: linear-gradient(135deg, rgba(79,156,255,0.2), rgba(168,85,247,0.15)); backdrop-filter: blur(12px); border: 1px solid rgba(79,156,255,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(79,156,255,0.3); }
+        .flashcard-toggle:hover { transform: scale(1.1); box-shadow: 0 0 25px rgba(79,156,255,0.5); border-color: #4f9cff; }
+        .flashcard-panel { position: absolute; right: 70px; top: 50%; transform: translateY(-50%) scale(0.9); width: 320px; background: rgba(8, 12, 24, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(79,156,255,0.2); border-radius: 24px; padding: 20px; opacity: 0; pointer-events: none; transition: all 0.3s ease; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .flashcard-panel.open { opacity: 1; pointer-events: all; transform: translateY(-50%) scale(1); }
+        .flashcard-content { text-align: center; }
+        .flashcard-question { font-size: 18px; color: #e2e8f0; margin-bottom: 20px; line-height: 1.6; min-height: 100px; display: flex; align-items: center; justify-content: center; }
+        .flashcard-answer { background: rgba(79,156,255,0.1); border-radius: 16px; padding: 15px; margin: 15px 0; color: #4f9cff; font-size: 14px; display: none; border: 1px solid rgba(79,156,255,0.2); }
+        .flashcard-answer.show { display: block; }
+        .flashcard-nav { display: flex; gap: 10px; margin-top: 15px; }
+        .flash-nav-btn { flex: 1; padding: 8px; background: rgba(79,156,255,0.1); border: 1px solid rgba(79,156,255,0.2); border-radius: 12px; color: #e2e8f0; cursor: pointer; transition: 0.2s; }
+        .flash-nav-btn:hover { background: rgba(79,156,255,0.2); border-color: #4f9cff; }
+        .show-answer-btn { background: linear-gradient(135deg, #4f9cff, #a855f7); border: none; color: white; }
+        .flashcard-counter { font-size: 11px; color: #475569; margin-top: 12px; }
+
+        /* ===== STUDY TIPS & MINI QUIZ ===== */
+        .study-tips-bar { position: fixed; bottom: 100px; left: 30px; z-index: 499; background: rgba(8, 12, 24, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(79,156,255,0.2); border-radius: 40px; padding: 8px 20px; display: flex; align-items: center; gap: 15px; font-size: 13px; color: #94a3b8; max-width: 300px; pointer-events: auto; }
+        .tip-text { flex: 1; animation: tipFade 0.5s ease; }
+        @keyframes tipFade { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .mini-quiz-btn { background: linear-gradient(135deg, #4f9cff, #a855f7); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .mini-quiz-btn:hover { transform: scale(1.1); }
+        .mini-quiz-modal { position: fixed; bottom: 150px; left: 30px; width: 280px; background: rgba(8, 12, 24, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(79,156,255,0.3); border-radius: 20px; padding: 18px; z-index: 501; transform: scale(0.9); opacity: 0; pointer-events: none; transition: all 0.3s ease; }
+        .mini-quiz-modal.open { transform: scale(1); opacity: 1; pointer-events: all; }
+        .quiz-question { font-size: 14px; color: #e2e8f0; margin-bottom: 12px; }
+        .quiz-option { background: rgba(79,156,255,0.08); border: 1px solid rgba(79,156,255,0.15); border-radius: 10px; padding: 8px 12px; margin: 6px 0; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .quiz-option:hover { background: rgba(79,156,255,0.2); border-color: #4f9cff; }
+        .quiz-feedback { margin-top: 10px; font-size: 12px; text-align: center; }
+        .quiz-close { position: absolute; top: 8px; right: 12px; cursor: pointer; color: #64748b; }
+
+        /* ===== STUDY STREAK ===== */
+        .streak-indicator { position: fixed; top: 90px; right: 20px; z-index: 400; background: rgba(8, 12, 24, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(79,156,255,0.3); border-radius: 50px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .streak-indicator:hover { transform: scale(1.05); border-color: #4f9cff; }
+        .streak-fire { font-size: 20px; animation: flameFlicker 0.5s ease-in-out infinite alternate; }
+        @keyframes flameFlicker { from { text-shadow: 0 0 2px #ff6600; } to { text-shadow: 0 0 12px #ff9900; } }
+        .streak-number { font-weight: 800; color: #ff9900; font-size: 18px; }
+        .streak-label { font-size: 10px; color: #64748b; }
+        .best-streak { font-size: 10px; color: #475569; border-left: 1px solid rgba(79,156,255,0.2); padding-left: 8px; }
+
+        @media (max-width: 1100px) {
+            .cards-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { font-size: 3.5rem; }
+            .navbar { padding: 14px 30px; }
+            .name-text { font-size: 14px; }
+            .main-logo { font-size: 65px; }
+            .start-learning-btn { padding: 12px 35px; font-size: 18px; bottom: 100px; }
+            .animation-container { height: 300px; }
+            .ticker-content { font-size: 20px; }
+            .flashcard-panel { width: 280px; }
+        }
+
+        @media (max-width: 700px) {
+            .cards-grid { grid-template-columns: 1fr; }
+            .container { padding: 40px 20px; }
+            .hero h1 { font-size: 2.3rem; }
+            .hero p { font-size: 1rem; }
+            .stats-bar { gap: 25px; padding: 25px; }
+            .stat-number { font-size: 32px; }
+            .nav-links { gap: 12px; }
+            .ai-nav-btn { padding: 5px 12px; font-size: 11px; }
+            .logo-text { font-size: 16px; }
+            .logo-icon { font-size: 20px; }
+            .logo { padding: 5px 12px; }
+            .names-container { gap: 15px; flex-direction: column; align-items: center; }
+            .name-separator-glow { display: none; }
+            .main-logo { font-size: 42px; }
+            .start-learning-btn { padding: 10px 28px; font-size: 16px; bottom: 80px; }
+            .portal { width: 250px; height: 250px; }
+            .portal::before { width: 180px; height: 180px; }
+            .portal::after { width: 120px; height: 120px; }
+            .animation-container { height: 220px; }
+            .ticker-content { font-size: 16px; }
+            .news-ticker { padding: 12px 20px; width: 95%; }
+            .timer-panel { width: 290px; }
+            .flashcards-sidebar { right: 10px; }
+            .flashcard-toggle { width: 45px; height: 45px; font-size: 22px; }
+            .study-tips-bar { left: 10px; max-width: 250px; font-size: 11px; }
+            .streak-indicator { top: 80px; right: 10px; padding: 6px 12px; }
+            .welcome-message { bottom: 160px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<!-- شاشة الدخول -->
+<div class="virtual-entrance" id="virtualEntrance">
+    <div class="entrance-layer" id="entranceLayer">
+        <div class="portal"></div>
+        
+        <!-- Floating particles -->
+        <div class="floating-particles" id="floatingParticles"></div>
+        
+        <div class="names-showcase">
+            <div class="names-label">◈ صنع بواسطة ◈</div>
+            <div class="names-container">
+                <div class="name-card"><span class="name-text" id="name1">Abdelrahman Ahmed Farouk</span></div>
+                <span class="name-separator-glow">◆</span>
+                <div class="name-card"><span class="name-text" id="name2">Amr Khaled Mohamed</span></div>
+            </div>
+        </div>
+        
+        <div class="central-content" id="centralContent">
+            <div class="main-logo" id="mainLogo">Quick-Edu</div>
+            <div class="tagline" id="tagline"><span>مستقبل التعليم يبدأ من هنا</span></div>
+        </div>
+        
+        <div class="welcome-message" id="welcomeMessage">✨ مرحباً بك في رحلة التعلم ✨</div>
+        
+        <button class="start-learning-btn" id="startLearningBtn">✨ ابدأ الرحلة ✨</button>
+        
+        <div class="music-visualizer">
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+        </div>
+    </div>
+    <div class="portal-particles" id="portalParticles"></div>
+</div>
+
+<!-- المحتوى الرئيسي -->
+<div class="content" id="mainContent">
+    <div class="navbar" id="navbar">
+        <div class="logo">
+            <span class="logo-icon">⚡</span>
+            <span class="logo-text">Quick-Edu</span>
+        </div>
+        <div class="nav-links">
+            <a href="chemistry.html">الرئيسية</a>
+            <a href="lessons.html">الدروس</a>
+            <a href="quiz.html">الكويزات</a>
+            <a href="contact.html">التواصل</a>
+            <a href="https://gemini.google.com/" target="_blank" class="ai-nav-btn">🤖 AI مساعدة</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero hidden">
+            <div class="hero-badge">🚀 ثورة التعليم الذكي 🚀</div>
+            <h1>تَعَلَّمْ<br>بِقُوَّةْ</h1>
+            <p>منصة تعليمية متكاملة تجمع بين الدروس التفاعلية، المعمل الافتراضي، الكويزات الذكية، والتواصل المباشر</p>
+        </div>
+
+        <div class="ai-animation-section hidden">
+            <div class="ai-badge-new">🎮 تعليم ذكي… بأسلوب جيمرز 🎮</div>
+            <div class="animation-container">
+                <canvas id="learningCanvas"></canvas>
+                <div class="animation-overlay">
+                    <div class="news-ticker">
+                        <div class="ticker-content">
+                            مستقبلك مش كتاب… مستقبلك لعبة وانت البطل فيها💪
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards-grid hidden">
+            <div class="card" onclick="location.href='lessons.html'">
+                <div class="card-icon">📘</div>
+                <h2>شرح الدروس</h2>
+                <p>فيديوهات احترافية، ملخصات، وتمارين تفاعلية تغطي جميع المستويات</p>
+                <button class="card-btn">اكتشف الدروس</button>
+            </div>
+            <div class="card" onclick="location.href='lab.html'">
+                <div class="card-icon">💻</div>
+                <h2>النظام المحاسبي الافتراضي</h2>
+                <p>بيئة تطبيقية آمنة لتجربة المحاسبة والمشاريع العملية</p>
+                <button class="card-btn">جرب المعمل</button>
+            </div>
+            <div class="card" onclick="location.href='lab2.html'">
+                <div class="card-icon">🧪</div>
+                <h2>المعمل الكيميائي</h2>
+                <p>بيئة تطبيقية آمنة لتجربة التفاعلات الكيميائية</p>
+                <button class="card-btn">جرب المعمل</button>
+            </div>
+            <div class="card" onclick="location.href='quiz.html'">
+                <div class="card-icon">📝</div>
+                <h2>الكويزات</h2>
+                <p>اختبارات ذكية متعددة المستويات مع نتائج فورية وتحليل أداء</p>
+                <button class="card-btn">ابدأ الاختبار</button>
+            </div>
+            <div class="card" onclick="location.href='contact.html'">
+                <div class="card-icon">💬</div>
+                <h2>التواصل</h2>
+                <p>مجتمعات تعليمية، تواصل مباشر مع المعلمين، ومجموعات نقاش حية</p>
+                <button class="card-btn">انضم الآن</button>
+            </div>
+        </div>
+
+        <div class="stats-bar hidden">
+            <div class="stat"><div class="stat-number">+25K</div><div class="stat-label">طالب متفاعل</div></div>
+            <div class="stat"><div class="stat-number">+800</div><div class="stat-label">درس تفاعلي</div></div>
+            <div class="stat"><div class="stat-number">+350</div><div class="stat-label">كويز متنوع</div></div>
+            <div class="stat"><div class="stat-number">24/7</div><div class="stat-label">دعم فني</div></div>
+        </div>
+    </div>
+
+    <footer>
+        Quick-Edu © 2026 | تصميم وتطوير: Abdelrahman Ahmed Farouk & Amr Khaled Mohamed | Virtual World Edition
+    </footer>
+</div>
+
+<!-- ===== STUDY STREAK INDICATOR ===== -->
+<div class="streak-indicator" id="streakIndicator" onclick="showStreakMessage()">
+    <span class="streak-fire">🔥</span>
+    <div>
+        <span class="streak-number" id="streakCount">0</span>
+        <div class="streak-label">أيام التميز</div>
+    </div>
+    <div class="best-streak" id="bestStreak">أفضل: 0</div>
+</div>
+
+<!-- ===== FLASHCARDS SIDEBAR ===== -->
+<div class="flashcards-sidebar">
+    <div class="flashcard-toggle" id="flashcardToggle">🃟</div>
+    <div class="flashcard-panel" id="flashcardPanel">
+        <div class="flashcard-content">
+            <div class="flashcard-question" id="flashcardQuestion">?</div>
+            <div class="flashcard-answer" id="flashcardAnswer"></div>
+            <div class="flashcard-nav">
+                <button class="flash-nav-btn" id="prevFlashcard">◀ السابق</button>
+                <button class="flash-nav-btn show-answer-btn" id="showAnswerBtn">🔍 الإجابة</button>
+                <button class="flash-nav-btn" id="nextFlashcard">التالي ▶</button>
+            </div>
+            <div class="flashcard-counter" id="flashcardCounter">بطاقة 1 من 10</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== STUDY TIPS BAR ===== -->
+<div class="study-tips-bar" id="studyTipsBar">
+    <span>💡</span>
+    <span class="tip-text" id="tipText">خذ استراحة كل 45 دقيقة</span>
+    <button class="mini-quiz-btn" id="miniQuizBtn">❓</button>
+</div>
+
+<!-- ===== MINI QUIZ MODAL ===== -->
+<div class="mini-quiz-modal" id="miniQuizModal">
+    <div class="quiz-close" id="quizClose">✕</div>
+    <div class="quiz-question" id="quizQuestion"></div>
+    <div id="quizOptions"></div>
+    <div class="quiz-feedback" id="quizFeedback"></div>
+</div>
+
+<!-- ===== STUDY TIMER ===== -->
+<div class="timer-fab">
+    <div class="timer-panel" id="timerPanel">
+        <div class="timer-header">
+            <div class="timer-title-row">
+                <div class="timer-icon-wrap">⏱</div>
+                <div>
+                    <div class="timer-title">عداد المذاكرة</div>
+                    <div class="timer-subtitle" id="timerSubtitle">اختار وقتك وابدأ</div>
+                </div>
+            </div>
+            <div class="timer-status-dot" id="statusDot"></div>
+        </div>
+        <div class="timer-setup" id="timerSetup">
+            <div class="setup-label">مدة الجلسة</div>
+            <div class="quick-times">
+                <button class="quick-time-btn" onclick="setQuickTime(15, this)">15د</button>
+                <button class="quick-time-btn" onclick="setQuickTime(25, this)">25د</button>
+                <button class="quick-time-btn" onclick="setQuickTime(45, this)">45د</button>
+                <button class="quick-time-btn" onclick="setQuickTime(60, this)">ساعة</button>
+                <button class="quick-time-btn" onclick="setQuickTime(90, this)">1.5س</button>
+            </div>
+            <div class="custom-time-wrap">
+                <input type="range" class="time-slider" id="timeSlider" min="5" max="180" value="25" step="5" style="--pct:13%" oninput="onSliderChange(this)">
+                <div class="slider-val" id="sliderVal">25د</div>
+            </div>
+        </div>
+        <div class="timer-display-wrap">
+            <div class="ring-wrap">
+                <svg class="ring-svg" viewBox="0 0 150 150">
+                    <defs><linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#4f9cff"/><stop offset="50%" stop-color="#a855f7"/><stop offset="100%" stop-color="#22d3ee"/></linearGradient></defs>
+                    <circle class="ring-track" cx="75" cy="75" r="65"/>
+                    <circle class="ring-progress" id="ringProgress" cx="75" cy="75" r="65"/>
+                </svg>
+                <div class="ring-center">
+                    <div class="timer-digits" id="timerDigits">25:00</div>
+                    <div class="timer-phase" id="timerPhase">جاهز</div>
+                </div>
+            </div>
+        </div>
+        <div class="timer-controls">
+            <button class="ctrl-btn" id="resetBtn" onclick="resetTimer()">↺</button>
+            <button class="ctrl-btn start" id="startBtn" onclick="toggleTimer()">▶ ابدأ</button>
+        </div>
+        <div class="sessions-bar">
+            <div class="sessions-label">الجلسات</div>
+            <div class="sessions-dots" id="sessionsDots">
+                <div class="s-dot" id="sd1"></div><div class="s-dot" id="sd2"></div>
+                <div class="s-dot" id="sd3"></div><div class="s-dot" id="sd4"></div>
+            </div>
+            <div class="sessions-total" id="sessionsTotal">0 اليوم</div>
+        </div>
+        <div style="padding: 12px 22px; border-top: 1px solid rgba(255,255,255,0.04); font-size: 10px; color: #334155; display: flex; justify-content: space-between;">
+            <span>⏱ متوسط اليوم:</span><span id="avgStudyTime">0 د</span>
+        </div>
+    </div>
+    <button class="timer-fab-btn" id="timerFabBtn" onclick="toggleTimerPanel()" title="عداد المذاكرة">⏱</button>
+</div>
+
+<!-- Toast -->
+<div class="timer-done-toast" id="timerDoneToast">
+    <div class="toast-emoji">🎉</div>
+    <div class="toast-msg" id="toastMsg">أحسنت! انتهت جلسة المذاكرة</div>
+    <div class="toast-sub" id="toastSub">خد استراحة واستعد للجلسة الجاية</div>
+</div>
+
+<button class="scroll-top" id="scrollTop">↑</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════ Three.js Background ═══════════
+const canvasBg = document.getElementById('canvas-bg');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x05070a);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 30;
+const renderer = new THREE.WebGLRenderer({ canvas: canvasBg, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const pg = new THREE.BufferGeometry(), pa = new Float32Array(1800 * 3);
+for (let i = 0; i < 1800 * 3; i += 3) { pa[i] = (Math.random() - 0.5) * 100; pa[i+1] = (Math.random() - 0.5) * 60; pa[i+2] = (Math.random() - 0.5) * 50; }
+pg.setAttribute('position', new THREE.BufferAttribute(pa, 3));
+const pmesh = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.18, color: 0x4f9cff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending }));
+scene.add(pmesh);
+const pg2 = new THREE.BufferGeometry(), pa2 = new Float32Array(1000 * 3);
+for (let i = 0; i < 1000 * 3; i += 3) { pa2[i] = (Math.random() - 0.5) * 80; pa2[i+1] = (Math.random() - 0.5) * 50; pa2[i+2] = (Math.random() - 0.5) * 60; }
+pg2.setAttribute('position', new THREE.BufferAttribute(pa2, 3));
+const pmesh2 = new THREE.Points(pg2, new THREE.PointsMaterial({ size: 0.12, color: 0xa855f7, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending }));
+scene.add(pmesh2);
+let bt = 0;
+(function animateBg() { requestAnimationFrame(animateBg); bt += 0.002; pmesh.rotation.y = bt * 0.1; pmesh.rotation.x = bt * 0.05; pmesh2.rotation.y = -bt * 0.08; pmesh2.rotation.x = bt * 0.03; renderer.render(scene, camera); })();
+window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+// ═══════════ Learning Canvas ═══════════
+const lc = document.getElementById('learningCanvas');
+const lctx = lc.getContext('2d');
+let lw, lh, lparts = [], lwords = ['تَعَلَّم', 'LEARN', 'AI', 'مستقبل', 'تَطَوَّر', 'SMART', 'ابداع', 'FUTURE'], fwords = [];
+function resizeLC() {
+    const con = document.querySelector('.animation-container');
+    lw = con.clientWidth; lh = con.clientHeight; lc.width = lw; lc.height = lh;
+    lparts = []; for (let i = 0; i < 80; i++) lparts.push({ x: Math.random() * lw, y: Math.random() * lh, r: Math.random() * 3 + 1, sx: (Math.random() - 0.5) * 1.5, sy: (Math.random() - 0.5) * 1.5, c: `hsl(${200 + Math.random() * 60},80%,60%)` });
+    fwords = []; for (let i = 0; i < 12; i++) fwords.push({ t: lwords[Math.floor(Math.random() * lwords.length)], x: Math.random() * lw, y: Math.random() * lh, sy: 0.3 + Math.random() * 0.7, o: 0.3 + Math.random() * 0.5, s: 16 + Math.random() * 24 });
+}
+let ang = 0, ga = 0;
+function drawLC() {
+    if (!lctx) return;
+    lctx.clearRect(0, 0, lw, lh);
+    const g = lctx.createLinearGradient(0, 0, lw, lh); g.addColorStop(0, '#0a0e2a'); g.addColorStop(0.5, '#1a1a3a'); g.addColorStop(1, '#0a0a1a'); lctx.fillStyle = g; lctx.fillRect(0, 0, lw, lh);
+    for (let i = 0; i < 3; i++) { lctx.beginPath(); lctx.arc(lw/2 + Math.sin(ang * 0.5 + i) * 100, lh/2 + Math.cos(ang * 0.7 + i) * 80, 80 + Math.sin(ang + i) * 20, 0, Math.PI * 2); lctx.fillStyle = 'rgba(79,156,255,0.05)'; lctx.fill(); }
+    for (let p of lparts) { lctx.beginPath(); lctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); lctx.fillStyle = p.c; lctx.fill(); p.x += p.sx; p.y += p.sy; if (p.x < 0) p.x = lw; if (p.x > lw) p.x = 0; if (p.y < 0) p.y = lh; if (p.y > lh) p.y = 0; }
+    for (let fw of fwords) { lctx.font = `bold ${fw.s}px 'Poppins','Segoe UI'`; lctx.shadowBlur = 10; lctx.shadowColor = '#4f9cff'; lctx.fillStyle = `rgba(79,156,255,${fw.o + Math.sin(ang * 2) * 0.2})`; lctx.fillText(fw.t, fw.x, fw.y); fw.y -= fw.sy; if (fw.y < -50) { fw.y = lh + 50; fw.x = Math.random() * lw; } }
+    lctx.shadowBlur = 0; lctx.save(); lctx.shadowBlur = 20; lctx.shadowColor = '#4f9cff'; lctx.font = '80px "Segoe UI"'; lctx.fillStyle = 'rgba(255,200,100,0.9)'; lctx.fillText('🧠', lw/2 - 45, lh/2 + 25); lctx.font = '50px "Segoe UI"'; lctx.fillStyle = 'rgba(79,156,255,0.8)'; lctx.fillText('⚡', lw/2 + 30, lh/2 - 20); lctx.restore();
+    lctx.beginPath(); lctx.arc(lw/2, lh/2 + 10, 55, 0, Math.PI * 2); lctx.strokeStyle = `rgba(79,156,255,${0.4 + Math.sin(ga) * 0.2})`; lctx.lineWidth = 2; lctx.stroke();
+    lctx.beginPath(); lctx.arc(lw/2, lh/2 + 10, 65, 0, Math.PI * 2); lctx.strokeStyle = `rgba(168,85,247,${0.3 + Math.cos(ga) * 0.15})`; lctx.lineWidth = 1.5; lctx.stroke();
+    lctx.shadowBlur = 0; ang += 0.02; ga += 0.03; requestAnimationFrame(drawLC);
+}
+window.addEventListener('resize', resizeLC);
+setTimeout(() => { resizeLC(); drawLC(); }, 100);
+
+// ═══════════ Scroll ═══════════
+const hiddenEls = document.querySelectorAll('.hidden');
+const navbar = document.getElementById('navbar');
+const scrollTopBtn = document.getElementById('scrollTop');
+function checkScroll() {
+    hiddenEls.forEach(el => { if (el.getBoundingClientRect().top < window.innerHeight - 80) el.classList.add('show'); });
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+    scrollTopBtn.classList.toggle('show-btn', window.scrollY > 300);
+}
+window.addEventListener('scroll', checkScroll);
+window.addEventListener('load', checkScroll);
+scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// Ripple
+document.querySelectorAll('.card-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const r = document.createElement('span');
+        r.style.cssText = 'position:absolute;border-radius:50%;background:rgba(255,255,255,0.6);width:10px;height:10px;transform:translate(-50%,-50%) scale(0);animation:ripple 0.6s ease-out;pointer-events:none;';
+        const rect = this.getBoundingClientRect();
+        r.style.left = (e.clientX - rect.left) + 'px'; r.style.top = (e.clientY - rect.top) + 'px';
+        this.style.position = 'relative'; this.style.overflow = 'hidden'; this.appendChild(r); setTimeout(() => r.remove(), 600);
+    });
+});
+const rs = document.createElement('style'); rs.textContent = `@keyframes ripple{to{transform:translate(-50%,-50%) scale(35);opacity:0;}}`;document.head.appendChild(rs);
+
+// Portal Particles
+function createPortalParticles() {
+    const c = document.getElementById('portalParticles'); if (!c) return;
+    for (let i = 0; i < 120; i++) { const p = document.createElement('div'); p.className = 'portal-particle'; const a = Math.random() * Math.PI * 2, d = 150 + Math.random() * 400; p.style.setProperty('--px', (Math.cos(a) * d) + 'px'); p.style.setProperty('--py', (Math.sin(a) * d) + 'px'); p.style.left = '50%'; p.style.top = '50%'; p.style.transform = 'translate(-50%,-50%)'; c.appendChild(p); setTimeout(() => p.remove(), 1000); }
+}
+
+// Create floating particles
+function createFloatingParticles() {
+    const container = document.getElementById('floatingParticles');
+    for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'float-particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 8 + 's';
+        particle.style.animationDuration = (5 + Math.random() * 5) + 's';
+        container.appendChild(particle);
+    }
+}
+
+// Rotating tagline messages
+const taglines = [
+    "مستقبل التعليم يبدأ من هنا",
+    "تعلم بذكاء، ليس بجهد",
+    "قوة المعرفة بين يديك",
+    "ثورة التعليم الذكي",
+    "طور نفسك每一天",
+    "التعليم متعة لا واجب"
+];
+let taglineIndex = 0;
+function rotateTagline() {
+    taglineIndex = (taglineIndex + 1) % taglines.length;
+    const span = document.querySelector('#tagline span');
+    if (span) {
+        span.style.opacity = '0';
+        setTimeout(() => {
+            span.textContent = taglines[taglineIndex];
+            span.style.opacity = '1';
+        }, 300);
+    }
+}
+setInterval(rotateTagline, 4000);
+
+// Button click ripple effect
+function addRippleToButton(button) {
+    button.addEventListener('click', function(e) {
+        const ripple = document.createElement('div');
+        ripple.className = 'click-ripple';
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+        button.style.position = 'relative';
+        button.style.overflow = 'hidden';
+        button.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 800);
+    });
+}
+
+// ===== ENTRANCE SEQUENCE (NO COUNTDOWN - DIRECT) =====
+const hasVisited = sessionStorage.getItem('quickEduVisited');
+const entranceDiv = document.getElementById('virtualEntrance');
+const startBtn = document.getElementById('startLearningBtn');
+const mainContent = document.getElementById('mainContent');
+const entranceLayer = document.getElementById('entranceLayer');
+const centralContent = document.getElementById('centralContent');
+
+if (hasVisited) {
+    if (entranceDiv) entranceDiv.style.display = 'none';
+    if (mainContent) mainContent.style.visibility = 'visible';
+} else {
+    sessionStorage.setItem('quickEduVisited', 'true');
+    if (mainContent) mainContent.style.visibility = 'hidden';
+    
+    // Create floating particles
+    createFloatingParticles();
+    
+    // Show logo immediately with animation
+    centralContent.classList.add('animate-logo');
+    
+    // Show button after 0.6 seconds
+    setTimeout(() => {
+        if (startBtn) startBtn.classList.add('show-btn');
+    }, 600);
+    
+    // Add ripple to button
+    if (startBtn) {
+        addRippleToButton(startBtn);
+        
+        startBtn.addEventListener('click', function() {
+            createPortalParticles();
+            if (entranceLayer) entranceLayer.classList.add('exit');
+            if (mainContent) {
+                setTimeout(() => {
+                    mainContent.style.visibility = 'visible';
+                    document.querySelectorAll('.hero,.cards-grid,.stats-bar,.ai-animation-section').forEach(el => { if (el) el.classList.add('hidden'); });
+                    checkScroll();
+                }, 400);
+            }
+            setTimeout(() => { if (entranceDiv) entranceDiv.style.display = 'none'; }, 1000);
+        });
+    }
+}
+
+// ═══════════ STUDY TIMER CODE ═══════════
+const CIRCUMFERENCE = 2 * Math.PI * 65;
+let timerState = {
+    totalSeconds: 25 * 60,
+    remaining: 25 * 60,
+    running: false,
+    interval: null,
+    sessions: parseInt(localStorage.getItem('qe_timer_sessions') || '0'),
+    selectedMinutes: 25,
+};
+
+function toggleTimerPanel() { document.getElementById('timerPanel').classList.toggle('open'); }
+document.addEventListener('click', e => { const fab = document.querySelector('.timer-fab'); if (!fab.contains(e.target)) document.getElementById('timerPanel').classList.remove('open'); });
+
+function setQuickTime(mins, btn) {
+    if (timerState.running) return;
+    document.querySelectorAll('.quick-time-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    timerState.selectedMinutes = mins;
+    timerState.totalSeconds = mins * 60;
+    timerState.remaining = mins * 60;
+    const slider = document.getElementById('timeSlider');
+    slider.value = mins;
+    updateSliderStyle(slider);
+    updateSliderLabel(mins);
+    updateDisplay();
+}
+
+function onSliderChange(slider) {
+    if (timerState.running) return;
+    const mins = parseInt(slider.value);
+    timerState.selectedMinutes = mins;
+    timerState.totalSeconds = mins * 60;
+    timerState.remaining = mins * 60;
+    updateSliderStyle(slider);
+    updateSliderLabel(mins);
+    document.querySelectorAll('.quick-time-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.quick-time-btn').forEach(b => {
+        const bMins = parseInt(b.textContent) || (b.textContent.includes('ساعة') ? 60 : b.textContent.includes('1.5') ? 90 : 0);
+        if (bMins === mins) b.classList.add('active');
+    });
+    updateDisplay();
+}
+
+function updateSliderStyle(slider) {
+    const min = parseInt(slider.min), max = parseInt(slider.max), val = parseInt(slider.value);
+    const pct = Math.round(((val - min) / (max - min)) * 100);
+    slider.style.setProperty('--pct', pct + '%');
+}
+
+function updateSliderLabel(mins) {
+    let label;
+    if (mins < 60) label = mins + 'د';
+    else if (mins === 60) label = 'ساعة';
+    else label = (mins / 60).toFixed(1) + 'س';
+    document.getElementById('sliderVal').textContent = label;
+}
+
+function updateDisplay() {
+    const rem = timerState.remaining;
+    const total = timerState.totalSeconds;
+    const m = String(Math.floor(rem / 60)).padStart(2, '0');
+    const s = String(rem % 60).padStart(2, '0');
+    document.getElementById('timerDigits').textContent = m + ':' + s;
+    if (timerState.running && rem > 0) document.title = `⏱ ${m}:${s} - Quick-Edu`;
+    else if (!timerState.running && rem > 0) document.title = `Quick-Edu | العالم الافتراضي للتعليم`;
+    const progress = total > 0 ? (total - rem) / total : 0;
+    const offset = CIRCUMFERENCE - (progress * CIRCUMFERENCE);
+    document.getElementById('ringProgress').style.strokeDasharray = CIRCUMFERENCE;
+    document.getElementById('ringProgress').style.strokeDashoffset = offset;
+    const phase = document.getElementById('timerPhase');
+    if (!timerState.running && rem === total) phase.textContent = 'جاهز';
+    else if (timerState.running) phase.textContent = 'يتعد…';
+    else if (rem === 0) phase.textContent = 'خلص!';
+    else phase.textContent = 'متوقف';
+}
+
+function toggleTimer() {
+    if (timerState.remaining === 0) { resetTimer(); return; }
+    if (timerState.running) {
+        clearInterval(timerState.interval);
+        timerState.running = false;
+        document.getElementById('startBtn').textContent = '▶ كمل';
+        document.getElementById('statusDot').className = 'timer-status-dot paused';
+        document.getElementById('timerPhase').textContent = 'متوقف';
+        document.getElementById('timerSubtitle').textContent = 'مؤقت مؤقتاً';
+        document.title = `Quick-Edu | العالم الافتراضي للتعليم`;
+    } else {
+        timerState.running = true;
+        document.getElementById('startBtn').textContent = '⏸ وقف';
+        document.getElementById('statusDot').className = 'timer-status-dot running';
+        document.getElementById('timerSubtitle').textContent = 'جلسة نشطة ⚡';
+        document.getElementById('timerPhase').textContent = 'يتعد…';
+        timerState.interval = setInterval(() => {
+            timerState.remaining--;
+            updateDisplay();
+            if (timerState.remaining <= 0) {
+                clearInterval(timerState.interval);
+                timerState.running = false;
+                timerFinished();
+            }
+        }, 1000);
+    }
+    updateDisplay();
+}
+
+function resetTimer() {
+    clearInterval(timerState.interval);
+    timerState.running = false;
+    timerState.remaining = timerState.totalSeconds;
+    document.getElementById('startBtn').textContent = '▶ ابدأ';
+    document.getElementById('statusDot').className = 'timer-status-dot';
+    document.getElementById('timerSubtitle').textContent = 'اختار وقتك وابدأ';
+    document.getElementById('timerPhase').textContent = 'جاهز';
+    updateDisplay();
+    document.title = `Quick-Edu | العالم الافتراضي للتعليم`;
+}
+
+function timerFinished() {
+    document.getElementById('startBtn').textContent = '▶ ابدأ';
+    document.getElementById('statusDot').className = 'timer-status-dot';
+    document.getElementById('timerSubtitle').textContent = 'الجلسة خلصت! 🎉';
+    updateStudyStreak();
+    timerState.sessions = Math.min(timerState.sessions + 1, 4);
+    localStorage.setItem('qe_timer_sessions', timerState.sessions);
+    updateSessionsDots();
+    const minsStudied = timerState.selectedMinutes;
+    let totalToday = parseInt(localStorage.getItem('qe_total_study_today') || '0');
+    totalToday += minsStudied;
+    localStorage.setItem('qe_total_study_today', totalToday);
+    updateAvgStudyTime();
+    let motivationalMsg = '';
+    if (minsStudied >= 60) motivationalMsg = '🔥 إنتاجية أسطوري! كمل كدة';
+    else if (minsStudied >= 45) motivationalMsg = '💪 تركيز عالي جداً! استمر';
+    else if (minsStudied >= 25) motivationalMsg = '🎯 ممتاز! عود نفسك على التركيز';
+    else motivationalMsg = '✨ خطوة أولى ممتازة! زود الوقت في الجلسة الجاية';
+    playDoneSound();
+    const toastMsg = `أحسنت! ذاكرت ${minsStudied < 60 ? minsStudied + ' دقيقة' : (minsStudied === 60 ? 'ساعة كاملة' : (minsStudied/60).toFixed(1) + ' ساعة')} 🔥<br><small style="font-size:11px">${motivationalMsg}</small>`;
+    document.getElementById('toastMsg').innerHTML = toastMsg;
+    const toast = document.getElementById('timerDoneToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 5000);
+}
+
+function updateSessionsDots() {
+    for (let i = 1; i <= 4; i++) document.getElementById('sd' + i).classList.toggle('done', timerState.sessions >= i);
+    document.getElementById('sessionsTotal').textContent = timerState.sessions + ' اليوم';
+}
+
+function updateAvgStudyTime() {
+    const totalToday = parseInt(localStorage.getItem('qe_total_study_today') || '0');
+    document.getElementById('avgStudyTime').textContent = totalToday + ' د';
+}
+
+function playDoneSound() {
+    try { const ac = new (window.AudioContext || window.webkitAudioContext)(); const notes = [440, 554, 659, 880]; notes.forEach((freq, i) => { const osc = ac.createOscillator(); const gain = ac.createGain(); osc.connect(gain); gain.connect(ac.destination); osc.frequency.value = freq; osc.type = 'sine'; const t = ac.currentTime + i * 0.15; gain.gain.setValueAtTime(0.25, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4); osc.start(t); osc.stop(t + 0.4); }); } catch(e) {}
+}
+
+// ===== FLASHCARDS =====
+const flashcards = [
+    { q: "ما هي أفضل طريقة للمذاكرة الفعالة؟", a: "تقنية البومودورو (25 دقيقة تركيز + 5 دقيقة راحة) مع التكرار المتباعد" },
+    { q: "ما هو التكرار المتباعد؟", a: "طريقة لمراجعة المعلومات على فترات متزايدة لتعزيز التذكر طويل المدى" },
+    { q: "كيف تحسن التركيز أثناء الدراسة؟", a: "تجنب المشتتات، استخدم تقنية 5-4-3-2-1، وابدأ بأصعب مهمة أولاً" },
+    { q: "ما هي قاعدة 20-20-20؟", a: "كل 20 دقيقة، انظر لشيء على بعد 20 قدم لمدة 20 ثانية لراحة العين" },
+    { q: "ما هي كفاءة المحاسبة؟", a: "قدرة النظام المحاسبي على تقديم معلومات دقيقة وفي الوقت المناسب" },
+    { q: "ما هو التفاعل الكيميائي الطارد للحرارة؟", a: "تفاعل يطلق حرارة، مثل احتراق الخشب" },
+    { q: "ما هي أفضل طريقة لكتابة الملاحظات؟", a: "طريقة Cornell: قسم الورقة لأقسام رئيسية (ملاحظات، كلمات مفتاحية، ملخص)" },
+    { q: "ما هو تأثير النوم على التعلم؟", a: "النوم يساعد على تثبيت الذكريات وتحسين التركيز" },
+    { q: "كيف تتغلب على التسويف؟", a: "قاعدة 2 دقيقة - ابدأ بأي مهمة لمدة دقيقتين فقط" },
+    { q: "ما هي أفضل طريقة لمراجعة ما قبل الامتحان؟", a: "المراجعة النشطة عبر الاختبارات الذاتية والشرح لشخص آخر" }
+];
+let currentFlashcard = 0;
+function updateFlashcard() { document.getElementById('flashcardQuestion').textContent = flashcards[currentFlashcard].q; document.getElementById('flashcardAnswer').textContent = flashcards[currentFlashcard].a; document.getElementById('flashcardAnswer').classList.remove('show'); document.getElementById('flashcardCounter').textContent = `بطاقة ${currentFlashcard + 1} من ${flashcards.length}`; }
+function showAnswer() { document.getElementById('flashcardAnswer').classList.add('show'); }
+function nextFlashcard() { currentFlashcard = (currentFlashcard + 1) % flashcards.length; updateFlashcard(); }
+function prevFlashcard() { currentFlashcard = (currentFlashcard - 1 + flashcards.length) % flashcards.length; updateFlashcard(); }
+
+// ===== STUDY STREAK =====
+function updateStudyStreak() {
+    const today = new Date().toDateString();
+    const lastStudyDay = localStorage.getItem('last_study_day');
+    let streak = parseInt(localStorage.getItem('study_streak') || '0');
+    let bestStreak = parseInt(localStorage.getItem('best_streak') || '0');
+    if (lastStudyDay !== today) {
+        const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+        if (lastStudyDay === yesterday.toDateString()) streak++;
+        else streak = 1;
+        if (streak > bestStreak) { bestStreak = streak; localStorage.setItem('best_streak', bestStreak); }
+        localStorage.setItem('study_streak', streak);
+        localStorage.setItem('last_study_day', today);
+    }
+    document.getElementById('streakCount').textContent = streak;
+    document.getElementById('bestStreak').textContent = `أفضل: ${bestStreak}`;
+    if (streak === 7) showToastMessage('🎉 7 أيام متتالية! أنت رائع!', 'إنجاز أسبوعي');
+    else if (streak === 30) showToastMessage('🏆 30 يوم تميز! أنت أسطورة!', 'إنجاز شهري');
+}
+function showStreakMessage() { showToastMessage(`🔥 سلسلة التميز: ${localStorage.getItem('study_streak') || '0'} يوم!`, 'استمر بتفوق'); }
+function showToastMessage(msg, sub) { document.getElementById('toastMsg').textContent = msg; document.getElementById('toastSub').textContent = sub || ''; const toast = document.getElementById('timerDoneToast'); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+
+// ===== STUDY TIPS =====
+const studyTips = ["خذ استراحة كل 45 دقيقة لتصفية الذهن 🧠", "شرب الماء يساعد على التركيز 💧", "المراجعة قبل النوم تثبت المعلومات 🛌", "استخدم تقنيات التذكر مثل الربط والصور الذهنية 🎨", "المذاكرة الجماعية تزيد الفهم بنسبة 50% 👥", "البيئة الهادئة تزيد الإنتاجية 3 مرات 📚", "حدد أهدافاً صغيرة قبل كل جلسة 🎯", "كافئ نفسك بعد إنجاز المهام 🎁", "الكتابة اليدوية تحسن التذكر ✍️", "الابتعاد عن الشاشات قبل النوم يحسن النوم 📵"];
+let currentTip = 0;
+function rotateTip() { currentTip = (currentTip + 1) % studyTips.length; const tipEl = document.getElementById('tipText'); tipEl.style.animation = 'none'; setTimeout(() => { tipEl.textContent = studyTips[currentTip]; tipEl.style.animation = 'tipFade 0.5s ease'; }, 10); }
+setInterval(rotateTip, 15000);
+
+// ===== MINI QUIZ =====
+const miniQuizData = { questions: [{ text: "ما هي أفضل مدة لجلسة تركيز باستخدام تقنية البومودورو؟", options: ["15 دقيقة", "25 دقيقة", "45 دقيقة", "ساعة كاملة"], correct: 1 }, { text: "ما هو التكرار المتباعد؟", options: ["مراجعة سريعة", "الدراسة لساعات", "مراجعة على فترات متزايدة", "الحفظ عن ظهر قلب"], correct: 2 }, { text: "ما هي قاعدة 20-20-20؟", options: ["20 دقيقة - 20 راحة", "كل 20 دقيقة انظر لمسافة 20 قدم لمدة 20 ثانية", "20 سؤال - 20 إجابة", "20 صفحة - 20 تمرين"], correct: 1 }], current: 0, score: 0 };
+function openMiniQuiz() { document.getElementById('miniQuizModal').classList.add('open'); loadQuizQuestion(0); miniQuizData.score = 0; }
+function closeMiniQuiz() { document.getElementById('miniQuizModal').classList.remove('open'); }
+function loadQuizQuestion(index) { const q = miniQuizData.questions[index]; document.getElementById('quizQuestion').textContent = q.text; const optionsDiv = document.getElementById('quizOptions'); optionsDiv.innerHTML = ''; q.options.forEach((opt, i) => { const optDiv = document.createElement('div'); optDiv.className = 'quiz-option'; optDiv.textContent = opt; optDiv.onclick = () => checkQuizAnswer(i); optionsDiv.appendChild(optDiv); }); document.getElementById('quizFeedback').textContent = ''; }
+function checkQuizAnswer(selected) { const currentQ = miniQuizData.questions[miniQuizData.current]; const feedback = document.getElementById('quizFeedback'); if (selected === currentQ.correct) { miniQuizData.score++; feedback.innerHTML = '✅ صحيح! أحسنت 🎉'; feedback.style.color = '#22d3ee'; } else { feedback.innerHTML = `❌ خطأ! الإجابة الصحيحة: ${currentQ.options[currentQ.correct]}`; feedback.style.color = '#f87171'; } setTimeout(() => { miniQuizData.current++; if (miniQuizData.current < miniQuizData.questions.length) loadQuizQuestion(miniQuizData.current); else { const percentage = Math.round((miniQuizData.score / miniQuizData.questions.length) * 100); feedback.innerHTML = `🎯 انتهى الاختبار! نتيجتك: ${miniQuizData.score}/${miniQuizData.questions.length} (${percentage}%)`; if (percentage === 100) feedback.innerHTML += '<br>🏆 ممتاز! أنت متميز!'; else if (percentage >= 66) feedback.innerHTML += '<br>💪 جيد جداً! استمر'; else feedback.innerHTML += '<br>📚 راجع المعلومات وجرب مرة أخرى'; setTimeout(() => closeMiniQuiz(), 3000); } }, 1500); }
+
+// ===== RESET DAILY =====
+function resetDailyStudyTime() {
+    const lastResetDay = localStorage.getItem('daily_reset_day');
+    const today = new Date().toDateString();
+    if (lastResetDay !== today) {
+        localStorage.setItem('daily_reset_day', today);
+        localStorage.setItem('qe_total_study_today', '0');
+        timerState.sessions = 0;
+        localStorage.setItem('qe_timer_sessions', '0');
+        updateSessionsDots();
+        updateAvgStudyTime();
+    } else { timerState.sessions = parseInt(localStorage.getItem('qe_timer_sessions') || '0'); updateSessionsDots(); updateAvgStudyTime(); }
+}
+
+// ===== INITIALIZATION =====
+function initAllFeatures() {
+    resetDailyStudyTime();
+    updateStudyStreak();
+    updateFlashcard();
+    document.getElementById('flashcardToggle').addEventListener('click', () => { document.getElementById('flashcardPanel').classList.toggle('open'); });
+    document.getElementById('showAnswerBtn').addEventListener('click', showAnswer);
+    document.getElementById('nextFlashcard').addEventListener('click', nextFlashcard);
+    document.getElementById('prevFlashcard').addEventListener('click', prevFlashcard);
+    document.getElementById('miniQuizBtn').addEventListener('click', openMiniQuiz);
+    document.getElementById('quizClose').addEventListener('click', closeMiniQuiz);
+    document.addEventListener('click', (e) => { const sidebar = document.querySelector('.flashcards-sidebar'); if (sidebar && !sidebar.contains(e.target)) document.getElementById('flashcardPanel').classList.remove('open'); });
+}
+updateSliderStyle(document.getElementById('timeSlider'));
+updateSliderLabel(25);
+updateDisplay();
+updateSessionsDots();
+document.querySelectorAll('.quick-time-btn').forEach(b => { if (b.textContent === '25د') b.classList.add('active'); });
+setTimeout(initAllFeatures, 500);
+</script>
+</body>
+</html>

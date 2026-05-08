@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>EduVerse X | منصة تعليمية - العناصر الانتقالية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #05070a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.7;
+        }
+        .content { position: relative; z-index: 10; }
+        
+        /* ========== شريط التنقل الجديد والمطور ========== */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 60px;
+            background: rgba(5, 7, 10, 0.85);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(79, 156, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        /* تأثير التمرير */
+        .navbar.scrolled {
+            padding: 10px 60px;
+            background: rgba(5, 7, 10, 0.97);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(79, 156, 255, 0.4);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 40px;
+            padding: 5px 15px 5px 20px;
+            transition: transform 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.02);
+        }
+        .logo-icon {
+            font-size: 32px;
+            filter: drop-shadow(0 0 8px #4f9cff);
+            animation: gentlePulse 3s infinite ease-in-out;
+        }
+        @keyframes gentlePulse {
+            0%, 100% { filter: drop-shadow(0 0 6px #4f9cff); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 12px #4f9cff); transform: scale(1.05); }
+        }
+        .logo-text {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff, #4f9cff, #a855f7, #22d3ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            position: relative;
+        }
+        .logo-text::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            right: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #4f9cff, #a855f7);
+            transition: width 0.4s ease;
+        }
+        .logo:hover .logo-text::after {
+            width: 100%;
+        }
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 40px;
+            position: relative;
+            letter-spacing: 0.3px;
+        }
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #4f9cff, #22d3ee);
+            transition: all 0.3s ease;
+            transform: translateX(50%);
+            border-radius: 2px;
+        }
+        .nav-links a:hover::before, .nav-links a.active::before {
+            width: 70%;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: #ffffff;
+            background: rgba(79, 156, 255, 0.12);
+            text-shadow: 0 0 6px rgba(79, 156, 255, 0.4);
+        }
+        /* إضافة مؤشر للتبويب النشط */
+        .nav-links a.active {
+            background: linear-gradient(90deg, rgba(79, 156, 255, 0.2), rgba(168, 85, 247, 0.1));
+            border: 1px solid rgba(79, 156, 255, 0.3);
+        }
+        /* زر المعمل بتصميم مميز */
+        #labLink {
+            background: linear-gradient(90deg, rgba(79, 156, 255, 0.15), rgba(168, 85, 247, 0.08));
+            border: 1px solid rgba(79, 156, 255, 0.35);
+            margin-right: 5px;
+        }
+        #labLink:hover {
+            background: linear-gradient(90deg, rgba(79, 156, 255, 0.3), rgba(168, 85, 247, 0.2));
+            border-color: #4f9cff;
+            transform: translateY(-2px);
+        }
+        @media (max-width: 768px) {
+            .navbar { padding: 12px 20px; }
+            .navbar.scrolled { padding: 8px 20px; }
+            .logo-text { font-size: 18px; }
+            .logo-icon { font-size: 26px; }
+            .nav-links { gap: 8px; }
+            .nav-links a { padding: 6px 12px; font-size: 0.85rem; }
+        }
+        /* ========== باقي الاستايلات كما هي دون تغيير ========== */
+        
+        .container { max-width: 1300px; margin: 0 auto; padding: 50px 40px; }
+        .hero {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 50px 20px;
+            background: radial-gradient(ellipse 50% 50% at 50% 0%, rgba(79, 156, 255, 0.1), transparent);
+            border-radius: 60px;
+        }
+        .hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, #ffffff, #4f9cff, #a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 15px; }
+        .hero p { color: #94a3b8; font-size: 1.1rem; }
+        .classification {
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(79, 156, 255, 0.2);
+        }
+        .classification-title { font-size: 1.3rem; color: #4f9cff; margin-bottom: 20px; text-align: center; }
+        .class-row { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .class-btn {
+            background: rgba(5, 7, 10, 0.6);
+            border: 1px solid rgba(79, 156, 255, 0.3);
+            padding: 12px 28px;
+            border-radius: 50px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .class-btn.active { background: linear-gradient(90deg, #4f9cff, #3b82f6); color: white; border-color: transparent; }
+        .class-btn:hover:not(.active) { border-color: #4f9cff; color: #4f9cff; }
+        .subject-row { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
+        .subject-btn {
+            background: rgba(5, 7, 10, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            padding: 10px 24px;
+            border-radius: 40px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .subject-btn.active { background: linear-gradient(90deg, #a855f7, #7c3aed); color: white; border-color: transparent; }
+        .subject-btn:hover:not(.active) { border-color: #a855f7; color: #a855f7; }
+        .lessons-container { margin-top: 30px; }
+        .lessons-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        .lessons-header h2 { font-size: 1.6rem; background: linear-gradient(135deg, #4f9cff, #22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .lessons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        .lesson-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(5, 7, 10, 0.5));
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 28px;
+            cursor: pointer;
+            transition: all 0.35s;
+            border: 1px solid rgba(79, 156, 255, 0.15);
+        }
+        .lesson-card:hover { transform: translateY(-8px); border-color: #4f9cff; box-shadow: 0 20px 35px rgba(79, 156, 255, 0.2); }
+        .lesson-num {
+            display: inline-block;
+            background: linear-gradient(135deg, #4f9cff, #3b82f6);
+            width: 35px;
+            height: 35px;
+            border-radius: 12px;
+            text-align: center;
+            line-height: 35px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: white;
+        }
+        .lesson-card h3 { font-size: 1.4rem; margin-bottom: 10px; color: #4f9cff; }
+        .lesson-card p { color: #94a3b8; font-size: 13px; line-height: 1.6; }
+        .lesson-meta { display: flex; gap: 12px; margin-top: 15px; }
+        .meta-badge { font-size: 11px; padding: 4px 12px; border-radius: 20px; background: rgba(79, 156, 255, 0.15); color: #4f9cff; }
+        .lesson-content {
+            display: none;
+            background: linear-gradient(135deg, rgba(15, 25, 45, 0.95), rgba(5, 7, 15, 0.9));
+            backdrop-filter: blur(25px);
+            border-radius: 40px;
+            padding: 40px;
+            margin-top: 40px;
+            border: 1px solid rgba(79, 156, 255, 0.3);
+        }
+        .lesson-content.active { display: block; animation: fadeIn 0.4s ease; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        .content-header h2 { font-size: 1.7rem; color: #4f9cff; }
+        .close-btn { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 8px 25px; border-radius: 40px; color: #f87171; cursor: pointer; transition: 0.3s; }
+        .close-btn:hover { background: #ef4444; color: white; }
+        .video-wrapper { width: 100%; border-radius: 28px; overflow: hidden; margin-bottom: 30px; background: #000; }
+        .video-wrapper iframe { width: 100%; height: 460px; border: none; }
+        .lesson-text { line-height: 1.8; color: #cbd5e1; }
+        .lesson-text h3 { color: #22d3ee; margin: 20px 0 12px; font-size: 1.3rem; }
+        .highlight-box { background: rgba(79, 156, 255, 0.08); border-right: 3px solid #4f9cff; padding: 20px; border-radius: 18px; margin: 20px 0; }
+        .btn-group { display: flex; gap: 15px; justify-content: center; margin: 25px 0; flex-wrap: wrap; }
+        .btn-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 28px; border-radius: 40px; text-decoration: none; font-weight: 600; transition: 0.3s; }
+        .btn-youtube { background: linear-gradient(90deg, #ff0000, #cc0000); color: white; }
+        .btn-pdf { background: linear-gradient(90deg, #22c55e, #16a34a); color: white; }
+        .btn-link:hover { transform: scale(1.05); }
+        .video-parts {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .part-btn {
+            background: rgba(79, 156, 255, 0.15);
+            border: 1px solid rgba(79, 156, 255, 0.4);
+            padding: 10px 25px;
+            border-radius: 40px;
+            color: #4f9cff;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .part-btn.active {
+            background: linear-gradient(90deg, #4f9cff, #3b82f6);
+            color: white;
+            border-color: transparent;
+        }
+        .part-btn:hover:not(.active) {
+            border-color: #4f9cff;
+            transform: translateY(-2px);
+        }
+        .lab-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .lab-modal.active { display: flex; animation: fadeIn 0.25s ease; }
+        .lab-modal-content {
+            background: linear-gradient(145deg, #0f172a, #0a0c15);
+            border-radius: 28px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(79, 156, 255, 0.35);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4);
+        }
+        .lab-modal-content h2 { color: #4f9cff; font-size: 1.5rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .lab-modal-content p { color: #94a3b8; font-size: 13px; margin-bottom: 24px; }
+        .lab-options { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .lab-option {
+            background: linear-gradient(135deg, rgba(79, 156, 255, 0.12), rgba(168, 85, 247, 0.06));
+            border: 1px solid rgba(79, 156, 255, 0.25);
+            border-radius: 18px;
+            padding: 18px 22px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+        }
+        .lab-option:hover { transform: translateY(-4px); border-color: #4f9cff; background: linear-gradient(135deg, rgba(79, 156, 255, 0.2), rgba(168, 85, 247, 0.1)); box-shadow: 0 8px 20px rgba(79, 156, 255, 0.15); }
+        .lab-option .icon { font-size: 40px; margin-bottom: 10px; }
+        .lab-option h3 { color: #4f9cff; font-size: 1.1rem; margin-bottom: 5px; font-weight: 600; }
+        .lab-option p { font-size: 11px; margin-bottom: 0; color: #7e8a9a; }
+        .close-lab-modal { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(239, 68, 68, 0.4); padding: 8px 20px; border-radius: 40px; color: #f87171; cursor: pointer; margin-top: 22px; transition: 0.3s; font-size: 13px; }
+        .close-lab-modal:hover { background: #ef4444; color: white; border-color: #ef4444; }
+        footer { text-align: center; padding: 40px; border-top: 1px solid rgba(79, 156, 255, 0.1); color: #475569; margin-top: 60px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @media (max-width: 768px) {
+            .container { padding: 30px 20px; }
+            .hero h1 { font-size: 2rem; }
+            .video-wrapper iframe { height: 220px; }
+            .classification { padding: 20px; }
+            .class-btn, .subject-btn { padding: 8px 18px; font-size: 13px; }
+            .lab-modal-content { padding: 22px 20px; max-width: 350px; }
+            .lab-option { padding: 12px 16px; min-width: 120px; }
+            .lab-option .icon { font-size: 32px; }
+            .lab-option h3 { font-size: 0.95rem; }
+            .part-btn { padding: 6px 15px; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<div class="content">
+    <!-- شريط التنقل المطور -->
+    <div class="navbar" id="mainNavbar">
+        <div class="logo">
+            <span class="logo-icon">🎓</span>
+            <span class="logo-text">Quick-Edu</span>
+        </div>
+        <div class="nav-links">
+            <a href="chemistry.html">الرئيسية</a>
+            <a href="lessons.html" class="active">الدروس</a>
+            <a id="labLink">المعمل</a>
+            <a href="quiz.html">الكويزات</a>
+            <a href="contact.html">التواصل</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1>منصة Quick-Edu التعليمية</h1>
+            <p>اختر صفك الدراسي والمادة التي تريدها وابدأ التعلم فوراً</p>
+        </div>
+
+        <div class="classification">
+            <div class="classification-title">📚 اختر الصف الدراسي</div>
+            <div class="class-row" id="classButtons">
+                <button class="class-btn active" data-class="3">🎓 الثالث الثانوي</button>
+                <button class="class-btn" data-class="2">📘 الثاني الثانوي</button>
+                <button class="class-btn" data-class="1">📙 الأول الثانوي</button>
+                <button class="class-btn" data-class="bis">🌍 BIS</button>
+            </div>
+            <div class="classification-title" style="margin-top: 15px;">📖 اختر المادة</div>
+            <div class="subject-row" id="subjectButtons">
+                <button class="subject-btn active" data-subject="chemistry">🧪 الكيمياء</button>
+                <button class="subject-btn" data-subject="physics">⚡ الفيزياء</button>
+                <button class="subject-btn" data-subject="math">📐 الرياضيات</button>
+                <button class="subject-btn" data-subject="biology">🧬 الأحياء</button>
+                <button class="subject-btn" data-subject="ais">📊 AIS - القوائم المالية</button>
+            </div>
+        </div>
+
+        <div class="lessons-container">
+            <div class="lessons-header">
+                <h2 id="sectionTitle">📖 دروس الكيمياء - الثالث الثانوي</h2>
+            </div>
+            <div id="lessonsGrid" class="lessons-grid"></div>
+        </div>
+
+        <div id="lessonContent" class="lesson-content">
+            <div class="content-header">
+                <h2 id="lessonTitle"></h2>
+                <button class="close-btn" id="closeLesson">✕ إغلاق</button>
+            </div>
+            <div id="lessonBody"></div>
+        </div>
+    </div>
+
+    <footer>EduVerse X © 2026 | منصة تعليمية متكاملة</footer>
+</div>
+
+<!-- نافذة اختيار المعمل -->
+<div id="labModal" class="lab-modal">
+    <div class="lab-modal-content">
+        <h2>🧪 <span>اختر المعمل</span></h2>
+        <p>أي معمل تريد الدخول إليه؟</p>
+        <div class="lab-options">
+            <div class="lab-option" onclick="window.location.href='lab.html'"><div class="icon">💻</div><h3>النظام المحاسبي</h3><p>معمل المحاسبة الافتراضي</p></div>
+            <div class="lab-option" onclick="window.location.href='lab2.html'"><div class="icon">🧪</div><h3>المعمل الكيميائي</h3><p>تجارب العناصر الانتقالية</p></div>
+        </div>
+        <div><button class="close-lab-modal" onclick="closeLabModal()">✕ إغلاق</button></div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+    // خلفية ثلاثية الأبعاد (نفس الكود الأصلي)
+    const canvas = document.getElementById('canvas-bg');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x05070a);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 35;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 2000;
+    const posArray = new Float32Array(particlesCount * 3);
+    for(let i = 0; i < particlesCount * 3; i += 3) {
+        posArray[i] = (Math.random() - 0.5) * 140;
+        posArray[i+1] = (Math.random() - 0.5) * 80;
+        posArray[i+2] = (Math.random() - 0.5) * 70;
+    }
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const particlesMaterial = new THREE.PointsMaterial({ size: 0.12, color: 0x4f9cff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending });
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
+    
+    const particlesGeometry2 = new THREE.BufferGeometry();
+    const posArray2 = new Float32Array(1200 * 3);
+    for(let i = 0; i < 1200 * 3; i += 3) {
+        posArray2[i] = (Math.random() - 0.5) * 110;
+        posArray2[i+1] = (Math.random() - 0.5) * 70;
+        posArray2[i+2] = (Math.random() - 0.5) * 80;
+    }
+    particlesGeometry2.setAttribute('position', new THREE.BufferAttribute(posArray2, 3));
+    const particlesMaterial2 = new THREE.PointsMaterial({ size: 0.08, color: 0xa855f7, transparent: true, opacity: 0.3, blending: THREE.AdditiveBlending });
+    const particlesMesh2 = new THREE.Points(particlesGeometry2, particlesMaterial2);
+    scene.add(particlesMesh2);
+    
+    let time = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        time += 0.001;
+        particlesMesh.rotation.y = time * 0.05;
+        particlesMesh.rotation.x = time * 0.03;
+        particlesMesh2.rotation.y = -time * 0.04;
+        renderer.render(scene, camera);
+    }
+    animate();
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    
+    // تأثير التمرير على الناف بار
+    const navbar = document.getElementById('mainNavbar');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 20) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    const labModal = document.getElementById('labModal');
+    const labLink = document.getElementById('labLink');
+    function openLabModal() { labModal.classList.add('active'); }
+    function closeLabModal() { labModal.classList.remove('active'); }
+    labLink.addEventListener('click', (e) => { e.preventDefault(); openLabModal(); });
+    labModal.addEventListener('click', (e) => { if (e.target === labModal) closeLabModal(); });
+
+    const PWC_PDF_LINK = "https://www.pwc.com/jm/en/research-publications/pdf/basic-understanding-of-a-companys-financials.pdf";
+    
+    // روابط فيديوهات قائمة التدفقات النقدية (3 أجزاء)
+    const CASHFLOW_VIDEOS = {
+        part1: "https://youtu.be/pUixnTjYeWw",
+        part2: "https://youtu.be/eFQfbJadaKI",
+        part3: "https://youtu.be/cBvFUDqm6WA"
+    };
+    
+    // روابط الفيديوهات الأخرى
+    const FINANCIAL_VIDEOS = {
+        income: "https://youtu.be/cddaQmSHI9M",
+        balance: "https://youtu.be/4zd-E0GxSfY",
+        equity: "https://youtu.be/Sok_byz4050"
+    };
+
+    // دروس الكيمياء للثالث الثانوي
+    const YOUTUBE_IDS = {
+        lesson1: "fv0M6gOoLOg",
+        lesson2: "yo3azrvnaXw",
+        lesson3: "jbmUAvKpbwo",
+        lesson4: "maS1KTMDWx4"
+    };
+    const EXAM_LINK = "https://www.altfwok.com/2025/10/2026-pdf_01811522086.html";
+
+    const chemistryLessons3 = [
+        { id: 1, title: "مقدمة العناصر الانتقالية", videoId: YOUTUBE_IDS.lesson1, desc: "تعريف العناصر الانتقالية، موقعها في الجدول الدوري", text: `<h3>🔬 مقدمة العناصر الانتقالية</h3><p>العناصر الانتقالية هي العناصر التي تقع في المجموعات (3) إلى (12) في الجدول الدوري، وتتميز بامتلاكها مدارات (d) مملوءة جزئياً.</p><div class="highlight-box"><strong>⭐ تعريف مهم:</strong> العنصر الانتقالي هو العنصر الذي تحتوي ذرته أو أيوناته على مدار (d) غير مكتمل بالإلكترونات.</div><p><strong>السلسلة الانتقالية الأولى:</strong> من سكانديوم (Sc) حتى زنك (Zn) - العدد الذري 21-30</p>` },
+        { id: 2, title: "خواص العناصر الانتقالية", videoId: YOUTUBE_IDS.lesson2, desc: "الخواص الفيزيائية والكيميائية المميزة", text: `<h3>⚡ خواص العناصر الانتقالية</h3><p><strong>الخواص الفيزيائية:</strong> درجات انصهار وغليان عالية، كثافات عالية، موصلية جيدة.</p><div class="highlight-box"><strong>⭐ الخواص الكيميائية:</strong> تكوين أيونات ملونة، تكافؤات متعددة، تكوين مركبات معقدة، النشاط التحفيزي.</div>` },
+        { id: 3, title: "التوزيع الإلكتروني", videoId: YOUTUBE_IDS.lesson3, desc: "قاعدة التوزيع الإلكتروني، استثناءات Cr و Cu", text: `<h3>📝 التوزيع الإلكتروني للعناصر الانتقالية</h3><div class="table-wrap"><table class="info-table"><thead><tr><th>العنصر</th><th>العدد الذري</th><th>التوزيع الإلكتروني</th></tr></thead><tbody><tr><td style="color:#fbbf24;">Cr</td><td>24</td><td style="color:#fbbf24;">[Ar] 4s¹ 3d⁵ (استثناء)</td></tr><tr><td style="color:#fbbf24;">Cu</td><td>29</td><td style="color:#fbbf24;">[Ar] 4s¹ 3d¹⁰ (استثناء)</td></tr></tbody></table></div><div class="highlight-box"><strong>⭐ القاعدة:</strong> يملأ 4s قبل 3d، ولكن عند التأين يفقد من 4s أولاً.</div>` },
+        { id: 4, title: "ألوان الأيونات والمركبات", videoId: YOUTUBE_IDS.lesson4, desc: "ألوان أيونات العناصر الانتقالية + أهم المركبات", text: `<h3>🎨 ألوان أيونات العناصر الانتقالية</h3><div class="table-wrap"><table class="info-table"><thead><tr><th>الأيون</th><th>اللون</th></tr></thead><tbody><tr><td>Fe²⁺</td><td style="color:#4ade80;">أخضر فاتح</td></tr><tr><td>Fe³⁺</td><td style="color:#fbbf24;">أصفر بني</td></tr><tr><td>Cu²⁺</td><td style="color:#60a5fa;">أزرق</td></tr></tbody></table></div><h3>🧪 أهم المركبات</h3><p>كبريتات النحاس CuSO₄ (أزرق)، كلوريد الحديد الثلاثي FeCl₃ (أصفر بني)، برمنجنات البوتاسيوم KMnO₄ (أرجواني)</p>` }
+    ];
+
+    // دالة لعرض محتوى قائمة التدفقات النقدية مع أزرار الأجزاء
+    function getCashflowContent() {
+        return `
+            <h3>💰 قائمة التدفقات النقدية (Cash Flow Statement)</h3>
+            <p>قائمة التدفقات النقدية توضح التدفقات النقدية الداخلة والخارجة من المنشأة خلال فترة زمنية.</p>
+            <div class="highlight-box"><strong>📌 أقسام القائمة:</strong></div>
+            <ul style="margin-right: 25px; margin-top: 10px;">
+                <li><strong>الأنشطة التشغيلية:</strong> التدفقات النقدية من العمليات الأساسية للمنشأة</li>
+                <li><strong>الأنشطة الاستثمارية:</strong> شراء وبيع الأصول طويلة الأجل</li>
+                <li><strong>الأنشطة التمويلية:</strong> التغيرات في حقوق الملكية والديون</li>
+                <li><strong>صافي التغير في النقدية</strong></li>
+                <li><strong>النقدية في نهاية الفترة</strong></li>
+            </ul>
+            <div class="highlight-box">
+                📢 ملخص القوائم المالية الأربعة:
+                <ul style="margin-right: 25px; margin-top: 10px;">
+                    <li>📊 قائمة الدخل (Income Statement) - توضح الربحية</li>
+                    <li>🏦 قائمة المركز المالي (Balance Sheet) - تعبر عن المعادلة المحاسبية</li>
+                    <li>💰 قائمة التدفقات النقدية (Cash Flow Statement) - توضح السيولة</li>
+                    <li>📈 قائمة التغيرات في حقوق الملكية (Statement of Equity) - توضح التغيرات على حقوق المالكين</li>
+                </ul>
+            </div>
+        `;
+    }
+
+    // دروس AIS - القوائم المالية الأربعة
+    const aisLessons = [
+        { 
+            id: 1, 
+            title: "قائمة الدخل (Income Statement)", 
+            videoUrl: FINANCIAL_VIDEOS.income,
+            isMultiPart: false,
+            desc: "شرح قائمة الدخل - الإيرادات والمصروفات وصافي الربح/الخسارة",
+            text: `<h3>📊 قائمة الدخل (Income Statement)</h3>
+            <p>قائمة الدخل هي قائمة مالية توضح إيرادات ومصروفات المنشأة خلال فترة زمنية محددة، ويتم حساب صافي الربح أو الخسارة من خلالها.</p>
+            <div class="highlight-box"><strong>📌 المعادلة الأساسية:</strong> الإيرادات - المصروفات = صافي الربح/الخسارة</div>
+            <p>تتكون قائمة الدخل من:</p>
+            <ul style="margin-right: 25px; margin-top: 10px;">
+                <li>الإيرادات (المبيعات، إيرادات الخدمات، إيرادات الفوائد)</li>
+                <li>تكلفة البضاعة المباعة (COGS)</li>
+                <li>مجمل الربح = الإيرادات - COGS</li>
+                <li>المصروفات التشغيلية (تسويقية، إدارية، إهلاك)</li>
+                <li>صافي الربح قبل الضريبة</li>
+                <li>ضريبة الدخل</li>
+                <li>صافي الربح بعد الضريبة</li>
+            </ul>`
+        },
+        { 
+            id: 2, 
+            title: "قائمة المركز المالي (Balance Sheet)", 
+            videoUrl: FINANCIAL_VIDEOS.balance,
+            isMultiPart: false,
+            desc: "شرح قائمة المركز المالي - الأصول والخصوم وحقوق الملكية",
+            text: `<h3>🏦 قائمة المركز المالي (Balance Sheet)</h3>
+            <p>قائمة المركز المالي هي قائمة مالية توضح أصول المنشأة وخصومها وحقوق الملكية في تاريخ محدد.</p>
+            <div class="highlight-box"><strong>📌 المعادلة المحاسبية:</strong> الأصول = الخصوم + حقوق الملكية</div>
+            <p>تتكون قائمة المركز المالي من:</p>
+            <ul style="margin-right: 25px; margin-top: 10px;">
+                <li><strong>الأصول المتداولة</strong> (نقدية، عملاء، مخزون، مصروفات مدفوعة مقدماً)</li>
+                <li><strong>الأصول غير المتداولة</strong> (أصول ثابتة، أصول غير ملموسة، استثمارات)</li>
+                <li><strong>الخصوم المتداولة</strong> (دائنون، قروض قصيرة الأجل)</li>
+                <li><strong>الخصوم غير المتداولة</strong> (قروض طويلة الأجل، سندات)</li>
+                <li><strong>حقوق الملكية</strong> (رأس المال، الأرباح المحتجزة، احتياطيات)</li>
+            </ul>`
+        },
+        { 
+            id: 3, 
+            title: "قائمة التدفقات النقدية (Cash Flow Statement)", 
+            videoUrl: null,
+            isMultiPart: true,
+            parts: {
+                part1: { url: CASHFLOW_VIDEOS.part1, title: "الجزء الأول" },
+                part2: { url: CASHFLOW_VIDEOS.part2, title: "الجزء الثاني" },
+                part3: { url: CASHFLOW_VIDEOS.part3, title: "الجزء الثالث" }
+            },
+            desc: "شرح قائمة التدفقات النقدية - الأنشطة التشغيلية والاستثمارية والتمويلية (3 أجزاء)",
+            text: getCashflowContent()
+        },
+        { 
+            id: 4, 
+            title: "قائمة التغيرات في حقوق الملكية (Statement of Equity)", 
+            videoUrl: FINANCIAL_VIDEOS.equity,
+            isMultiPart: false,
+            desc: "شرح قائمة التغيرات في حقوق الملكية - الأرباح المحتجزة ورأس المال",
+            text: `<h3>📈 قائمة التغيرات في حقوق الملكية (Statement of Equity)</h3>
+            <p>قائمة التغيرات في حقوق الملكية توضح التغيرات التي تطرأ على حقوق الملاك خلال الفترة المالية.</p>
+            <div class="highlight-box"><strong>📌 المكونات الرئيسية:</strong></div>
+            <ul style="margin-right: 25px; margin-top: 10px;">
+                <li><strong>رأس المال المدفوع</strong> (الأسهم العادية والممتازة)</li>
+                <li><strong>الأرباح المحتجزة</strong> (الأرباح غير الموزعة)</li>
+                <li><strong>الاحتياطيات</strong> (قانونية، اختيارية)</li>
+                <li><strong>الدخل الشامل الآخر</strong></li>
+                <li><strong>توزيعات الأرباح</strong></li>
+                <li><strong>التغير في رأس المال</strong> (إصدار أو إعادة شراء أسهم)</li>
+            </ul>
+            <div class="highlight-box"><strong>📌 المعادلة:</strong> حقوق الملكية النهائية = حقوق الملكية الافتتاحية + صافي الدخل - توزيعات الأرباح + إصدار أسهم جديدة</div>`
+        }
+    ];
+
+    // بيانات المواد لجميع الصفوف
+    const lessonsDatabase = {
+        chemistry: { 3: chemistryLessons3, 2: [], 1: [] },
+        physics: { 3: [], 2: [], 1: [] },
+        math: { 3: [], 2: [], 1: [] },
+        biology: { 3: [], 2: [], 1: [] },
+        ais: { bis: aisLessons }
+    };
+
+    let currentClass = "3";
+    let currentSubject = "chemistry";
+    let currentCashflowPart = "part1";
+    
+    const lessonsGrid = document.getElementById('lessonsGrid');
+    const sectionTitle = document.getElementById('sectionTitle');
+    const lessonContentDiv = document.getElementById('lessonContent');
+    const lessonTitleSpan = document.getElementById('lessonTitle');
+    const lessonBodyDiv = document.getElementById('lessonBody');
+    const closeLessonBtn = document.getElementById('closeLesson');
+
+    const subjectNames = { chemistry: "الكيمياء", physics: "الفيزياء", math: "الرياضيات", biology: "الأحياء", ais: "AIS - القوائم المالية" };
+    const classNames = { "3": "الثالث الثانوي", "2": "الثاني الثانوي", "1": "الأول الثانوي", "bis": "BIS" };
+
+    function extractYouTubeId(url) {
+        const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?]+)/);
+        return match ? match[1] : null;
+    }
+
+    function updateLessons() {
+        if (currentClass === "bis") {
+            document.querySelectorAll('.subject-btn').forEach(btn => {
+                btn.style.display = btn.dataset.subject === 'ais' ? 'inline-block' : 'none';
+            });
+            if (currentSubject !== 'ais') {
+                currentSubject = 'ais';
+                document.querySelectorAll('.subject-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.subject === 'ais');
+                });
+            }
+            sectionTitle.innerHTML = `📖 ${subjectNames[currentSubject]} - ${classNames[currentClass]}`;
+            const lessons = lessonsDatabase.ais.bis;
+            lessonsGrid.innerHTML = '';
+            lessons.forEach((lesson, idx) => {
+                const card = document.createElement('div');
+                card.className = 'lesson-card';
+                const isMulti = lesson.isMultiPart ? '🎬 3 أجزاء' : '🎥 فيديو شرح';
+                card.innerHTML = `<div class="lesson-num">${idx + 1}</div><h3>${lesson.title}</h3><p>${lesson.desc}</p><div class="lesson-meta"><span class="meta-badge">${isMulti}</span><span class="meta-badge">📄 ملف PDF</span></div>`;
+                card.addEventListener('click', () => showAISLesson(lesson));
+                lessonsGrid.appendChild(card);
+            });
+            return;
+        }
+        
+        document.querySelectorAll('.subject-btn').forEach(btn => btn.style.display = 'inline-block');
+        if (currentSubject === 'ais') {
+            currentSubject = 'chemistry';
+            document.querySelectorAll('.subject-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.subject === 'chemistry'));
+        }
+        const lessons = lessonsDatabase[currentSubject][currentClass] || [];
+        sectionTitle.innerHTML = `📖 دروس ${subjectNames[currentSubject]} - ${classNames[currentClass]}`;
+        if (lessons.length === 0) {
+            lessonsGrid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:60px; background:rgba(15,23,42,0.5); border-radius:30px;"><div style="font-size:60px; margin-bottom:15px;">📚</div><h3 style="color:#4f9cff; margin-bottom:10px;">لا توجد دروس حالياً</h3><p style="color:#94a3b8;">سيتم إضافة الدروس قريباً</p></div>`;
+            return;
+        }
+        lessonsGrid.innerHTML = '';
+        lessons.forEach((lesson, idx) => {
+            const card = document.createElement('div');
+            card.className = 'lesson-card';
+            card.innerHTML = `<div class="lesson-num">${idx + 1}</div><h3>${lesson.title}</h3><p>${lesson.desc}</p><div class="lesson-meta"><span class="meta-badge">🎥 فيديو شرح</span><span class="meta-badge">📘 كتاب الامتحان</span></div>`;
+            card.addEventListener('click', () => showLesson(lesson, subjectNames[currentSubject], classNames[currentClass]));
+            lessonsGrid.appendChild(card);
+        });
+    }
+
+    function showLesson(lesson, subjectName, className) {
+        lessonTitleSpan.innerHTML = `${lesson.title} - ${subjectName} (${className})`;
+        lessonBodyDiv.innerHTML = `
+            <div class="video-wrapper"><iframe src="https://www.youtube.com/embed/${lesson.videoId}?rel=0&autoplay=1" allowfullscreen></iframe></div>
+            <div class="lesson-text">${lesson.text}<div class="btn-group"><a href="https://www.youtube.com/watch?v=${lesson.videoId}" target="_blank" class="btn-link btn-youtube">▶️ مشاهدة على YouTube</a><a href="${EXAM_LINK}" target="_blank" class="btn-link btn-pdf">📘 تحميل مذكرة الأستاذ خالد صقر PDF</a></div><div class="highlight-box">📌 المذكرة تشمل شرحاً كاملاً للباب الأول (العناصر الانتقالية) + أهم الأسئلة والتدريبات.</div></div>
+        `;
+        lessonContentDiv.classList.add('active');
+        window.scrollTo({ top: lessonContentDiv.offsetTop - 100, behavior: 'smooth' });
+    }
+
+    function showAISLesson(lesson) {
+        lessonTitleSpan.innerHTML = `${lesson.title} - AIS (BIS)`;
+        
+        if (lesson.isMultiPart) {
+            const partsHtml = `
+                <div class="video-parts">
+                    <button class="part-btn ${currentCashflowPart === 'part1' ? 'active' : ''}" data-part="part1">📹 الجزء الأول</button>
+                    <button class="part-btn ${currentCashflowPart === 'part2' ? 'active' : ''}" data-part="part2">📹 الجزء الثاني</button>
+                    <button class="part-btn ${currentCashflowPart === 'part3' ? 'active' : ''}" data-part="part3">📹 الجزء الثالث</button>
+                </div>
+                <div id="cashflowVideoContainer" class="video-wrapper">
+                    <iframe id="cashflowIframe" src="https://www.youtube.com/embed/${extractYouTubeId(lesson.parts.part1.url)}?rel=0&autoplay=1" allowfullscreen></iframe>
+                </div>
+            `;
+            
+            lessonBodyDiv.innerHTML = `
+                ${partsHtml}
+                <div class="lesson-text">
+                    ${lesson.text}
+                    <div class="btn-group">
+                        <a href="${lesson.parts.part1.url}" target="_blank" class="btn-link btn-youtube" id="youtubeLinkPart1">▶️ مشاهدة الجزء الأول على YouTube</a>
+                        <a href="${lesson.parts.part2.url}" target="_blank" class="btn-link btn-youtube" id="youtubeLinkPart2" style="display:none;">▶️ مشاهدة الجزء الثاني على YouTube</a>
+                        <a href="${lesson.parts.part3.url}" target="_blank" class="btn-link btn-youtube" id="youtubeLinkPart3" style="display:none;">▶️ مشاهدة الجزء الثالث على YouTube</a>
+                        <a href="${PWC_PDF_LINK}" target="_blank" class="btn-link btn-pdf">📘 تحميل ملف شرح القوائم المالية - PwC (PDF)</a>
+                    </div>
+                    <div class="highlight-box">
+                        📢 ملخص القوائم المالية الأربعة:
+                        <ul style="margin-right: 25px; margin-top: 10px;">
+                            <li>📊 قائمة الدخل (Income Statement) - توضح الربحية</li>
+                            <li>🏦 قائمة المركز المالي (Balance Sheet) - تعبر عن المعادلة المحاسبية</li>
+                            <li>💰 قائمة التدفقات النقدية (Cash Flow Statement) - توضح السيولة</li>
+                            <li>📈 قائمة التغيرات في حقوق الملكية (Statement of Equity) - توضح التغيرات على حقوق المالكين</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            document.querySelectorAll('.part-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const part = btn.dataset.part;
+                    currentCashflowPart = part;
+                    const videoId = extractYouTubeId(lesson.parts[part].url);
+                    const iframe = document.getElementById('cashflowIframe');
+                    if (iframe) {
+                        iframe.src = `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1`;
+                    }
+                    document.getElementById('youtubeLinkPart1').style.display = part === 'part1' ? 'inline-flex' : 'none';
+                    document.getElementById('youtubeLinkPart2').style.display = part === 'part2' ? 'inline-flex' : 'none';
+                    document.getElementById('youtubeLinkPart3').style.display = part === 'part3' ? 'inline-flex' : 'none';
+                    document.querySelectorAll('.part-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+            
+            document.getElementById('youtubeLinkPart1').style.display = 'inline-flex';
+            document.getElementById('youtubeLinkPart2').style.display = 'none';
+            document.getElementById('youtubeLinkPart3').style.display = 'none';
+            
+        } else {
+            const videoId = extractYouTubeId(lesson.videoUrl);
+            const videoEmbed = videoId ? `<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1" allowfullscreen></iframe></div>` : '';
+            lessonBodyDiv.innerHTML = `
+                ${videoEmbed}
+                <div class="lesson-text">
+                    ${lesson.text}
+                    <div class="btn-group">
+                        <a href="${PWC_PDF_LINK}" target="_blank" class="btn-link btn-pdf">📘 تحميل ملف شرح القوائم المالية - PwC (PDF)</a>
+                    </div>
+                    <div class="highlight-box">
+                        📢 ملخص القوائم المالية الأربعة:
+                        <ul style="margin-right: 25px; margin-top: 10px;">
+                            <li>📊 قائمة الدخل (Income Statement) - توضح الربحية</li>
+                            <li>🏦 قائمة المركز المالي (Balance Sheet) - تعبر عن المعادلة المحاسبية</li>
+                            <li>💰 قائمة التدفقات النقدية (Cash Flow Statement) - توضح السيولة</li>
+                            <li>📈 قائمة التغيرات في حقوق الملكية (Statement of Equity) - توضح التغيرات على حقوق المالكين</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+        
+        lessonContentDiv.classList.add('active');
+        window.scrollTo({ top: lessonContentDiv.offsetTop - 100, behavior: 'smooth' });
+    }
+
+    closeLessonBtn.addEventListener('click', () => lessonContentDiv.classList.remove('active'));
+    document.querySelectorAll('.class-btn').forEach(btn => btn.addEventListener('click', () => {
+        document.querySelectorAll('.class-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentClass = btn.dataset.class;
+        updateLessons();
+        lessonContentDiv.classList.remove('active');
+    }));
+    document.querySelectorAll('.subject-btn').forEach(btn => btn.addEventListener('click', () => {
+        document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentSubject = btn.dataset.subject;
+        updateLessons();
+        lessonContentDiv.classList.remove('active');
+    }));
+    updateLessons();
+    window.addEventListener('load', () => {
+        document.querySelectorAll('.class-btn, .subject-btn').forEach((btn, i) => {
+            btn.style.opacity = '0';
+            btn.style.transform = 'translateY(10px)';
+            setTimeout(() => { btn.style.transition = 'all 0.3s ease'; btn.style.opacity = '1'; btn.style.transform = 'translateY(0)'; }, i * 50);
+        });
+    });
+</script>
+</body>
+</html>
